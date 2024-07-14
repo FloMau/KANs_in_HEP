@@ -1,0 +1,17 @@
+{
+    "features_to_use": [
+        "phoLeadPt", "phoLeadEta", "phoLeadPhi", "phoSubleadPt",
+        "phoSubleadEta", "phoSubleadPhi", "ptH", "yH", "phiH", "nJets",
+        "nLeptons", "nJetsCentral", "nBjetsCentral", "nJetsForward", "met",
+        "metPhi", "leptonPt", "leptonEta", "leptonPhi", "topMt", "bJetPt",
+        "bJetEta", "bJetPhi", "jetLeadPt", "jetLeadEta", "jetLeadPhi",
+        "delta_eta_b_j", "rapiditySumJH", "rapidityDiffJH", "DeltaY_Hb",
+        "DeltaY_Hl"
+    ],
+    "epochs": 1000,
+    "patience": 5,
+    "learning_rate": 0.001,
+    "batch_size": 512,
+    "num_nodes": [32],
+    "output_dir": "./TrainingOutputs/MLP/firstTest/"
+}

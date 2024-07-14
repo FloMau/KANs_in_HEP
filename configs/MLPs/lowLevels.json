@@ -1,0 +1,15 @@
+{
+    "features_to_use": [
+        "phoLeadPt", "phoLeadEta", "phoLeadPhi", "phoSubleadPt",
+        "phoSubleadEta", "phoSubleadPhi", "nJets",
+        "nLeptons", "nJetsCentral", "nBjetsCentral", "nJetsForward", "met",
+        "metPhi", "leptonPt", "leptonEta", "leptonPhi", "bJetPt",
+        "bJetEta", "bJetPhi", "jetLeadPt", "jetLeadEta", "jetLeadPhi"
+    ],
+    "epochs": 1000,
+    "patience": 25,
+    "learning_rate": 0.001,
+    "batch_size": 512,
+    "num_nodes": [128, 64, 32, 16],
+    "output_dir": "./TrainingOutputs/MLP/LowLevels/4layers"
+}
