@@ -24,7 +24,6 @@ def main(path, entryStop):
     nEvents = len(events)
     events = event_selection(events)
 
-
     print("\tINFO: number of events before & after selection:", nEvents, len(events))
 
     genJets = ak.zip({ 
@@ -114,11 +113,12 @@ def main(path, entryStop):
     df['jetLeadEta'] = jetLead.eta.tolist()
     df['jetLeadPhi'] = jetLead.phi.tolist()
 
-    df['delta_eta_b_j'] = np.abs(jetLead.eta - bJetLead.eta).tolist()
+    # removed abs for rapidity differences...
+    df['delta_eta_b_j'] = (jetLead.eta - bJetLead.eta).tolist() 
     df['rapiditySumJH'] = np.sqrt(jetLead.rapidity**2 + diphoton.rapidity**2).tolist()
-    df['rapidityDiffJH'] = np.abs(jetLead.rapidity - diphoton.rapidity).tolist()
-    df['DeltaY_Hb'] = np.abs(bJetLead.rapidity - diphoton.rapidity).tolist()
-    df['DeltaY_Hl'] = np.abs(leptons[:, 0].rapidity - diphoton.rapidity).tolist()
+    df['rapidityDiffJH'] = (jetLead.rapidity - diphoton.rapidity).tolist()
+    df['DeltaY_Hb'] = (bJetLead.rapidity - diphoton.rapidity).tolist()
+    df['DeltaY_Hl'] = (leptons[:, 0].rapidity - diphoton.rapidity).tolist()
 
     df["weights"] = weights
 
@@ -135,7 +135,7 @@ filenamesTtHCPEven = glob.glob(basepath + "sampleGeneration/ttHCPEven/*.root")
 filenamesTHqCPEven = glob.glob(basepath + "sampleGeneration/tHq_TLep_k1_ktilde0/*.root")
 
 
-filenamesTtHCPEven = [f for f in filenamesTtHCPEven if not "_5.root" in f]
+# filenamesTtHCPEven = [f for f in filenamesTtHCPEven if not "_5.root" in f]
 
 stop = None
 # stop = 300
