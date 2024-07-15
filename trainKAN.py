@@ -15,17 +15,20 @@ from modules import plotter, KAN_plotter
 from sklearn.utils import shuffle
 import pickle
 from hist import Hist
-plt.style.use([hep.style.CMS])
+plt.style.use([hep.style.ROOT])
+import json
+import shutil
 
 # Directory where the datasets are stored
 input_dir = "./ML_datasets"
 
 # Read datasets
-stop = 90_000
+stop = 100_000
+stop_val = 33_000
 df_ttHCPEven_train = pd.read_csv(os.path.join(input_dir, 'ttHCPEven_train.csv'), nrows=stop)
-df_ttHCPEven_val = pd.read_csv(os.path.join(input_dir, 'ttHCPEven_val.csv'), nrows=int(0.3*stop))
+df_ttHCPEven_val = pd.read_csv(os.path.join(input_dir, 'ttHCPEven_val.csv'), nrows=int(stop_val))
 df_tHqCPEven_train = pd.read_csv(os.path.join(input_dir, 'tHqCPEven_train.csv'), nrows=stop)
-df_tHqCPEven_val = pd.read_csv(os.path.join(input_dir, 'tHqCPEven_val.csv'), nrows=int(0.3*stop))
+df_tHqCPEven_val = pd.read_csv(os.path.join(input_dir, 'tHqCPEven_val.csv'), nrows=int(stop_val))
 
 train_data = pd.concat([df_ttHCPEven_train, df_tHqCPEven_train])
 val_data = pd.concat([df_ttHCPEven_val, df_tHqCPEven_val])
@@ -44,18 +47,42 @@ val_data, val_labels = shuffle(val_data, val_labels, random_state=0)
 train_weights = train_data.pop("weights")
 val_weights = val_data.pop("weights")
 
-features = train_data.columns
 
-### all features currently in datasets
-features_to_use = ['ptH', 'yH', 'phiH', 'nJets', 'nLeptons', 'nJetsCentral',
-       'nBjetsCentral', 'nJetsForward', 'met', 'leptonPt', 'leptonEta',
-       'leptonPhi', 'topMt', 'bJetPt', 'bJetEta', 'bJetPhi', 'jetLeadPt',
-       'jetLeadEta', 'jetLeadPhi', 'delta_eta_b_j', 'rapiditySumJH',
-       'rapidityDiffJH', 'DeltaY_Hb', 'DeltaY_Hl']
+# Load the configuration from the JSON file
+config_path = 'configs/KANs/highAndLowLevels/22-44-1.json'
+with open(config_path, 'r') as config_file:
+    config = json.load(config_file)
 
-lam = 1e-3
-output_dir = f"./TrainingOutputs/KAN/test/"
+# Extract settings from the config
+features_to_use = config['features_to_use']
+epochs = config['epochs']
+patience = config['patience']
+LR = config['learning_rate']
+batch_size = config['batch_size']
+num_nodes = config['num_nodes']
+output_dir = config['output_dir']
+lamb = config["lamb"]
+grid = config["grid"]
+k = config["k"]
+opt = config["optimizer"]
+
+
+# Ensure the output directory exists
 os.makedirs(output_dir, exist_ok=True)
+
+# Copy the configuration file to the output directory
+shutil.copy(config_path, os.path.join(output_dir, 'config.json'))
+
+print("Features to use:", features_to_use)
+print("Epochs:", epochs)
+print("Patience:", patience)
+print("Learning Rate:", LR)
+print("Batch Size:", batch_size)
+print("Number of Nodes:", num_nodes)
+print("Output Directory:", output_dir)
+
+os.makedirs(output_dir, exist_ok=True)
+
 # Save the list to a text file
 features_file = os.path.join(output_dir, "features_to_use.txt")
 with open(features_file, 'w') as f:
@@ -64,9 +91,6 @@ with open(features_file, 'w') as f:
 
 train_data = train_data[features_to_use]
 val_data = val_data[features_to_use]
-
-# Feature columns
-features = train_data.columns
 
 short_names = {
 'ptH': 'ptH', 
@@ -77,6 +101,7 @@ short_names = {
 'nBjetsCentral': "nBJ",
 'nJetsForward': "nJF",
 'met': "MET",
+'met_phi': "PhiMET",
 'leptonPt': "pTL",
 'topMt': "mTt",
 'delta_eta_b_j': "deBJ",
@@ -94,11 +119,10 @@ short_names = {
 "leptonEta": "etaL",
 "leptonPhi": "phiL",
 }
-features = [short_names[f] if f in short_names.keys() else f for f in features]
-print("INFO: training with features", features)
+features_to_use = [short_names[f] if f in short_names.keys() else f for f in features_to_use]
+print("INFO: training with features", features_to_use)
 
 # Apply standard scaling
-scaler = StandardScaler()
 scaler = MinMaxScaler()
 train_data_scaled = scaler.fit_transform(train_data)
 val_data_scaled = scaler.transform(val_data)
@@ -122,11 +146,11 @@ dataset = {
 }
 
 input_dim = train_data_scaled.shape[1]
-model = KAN(width=[input_dim, 3, 3, 3, 1],
-            grid=5,
+model = KAN(width=num_nodes,
+            grid=grid,
             # grid_range=(0,1),
             # grid_eps=0.,
-            k=3,
+            k=k,
             seed=42)
 
 # Save the model
@@ -160,6 +184,7 @@ def BCE_with_sigmoid(predictions, targets):
     sigmoid_predictions = torch.sigmoid(predictions)
     # Compute binary cross-entropy loss
     loss = F.binary_cross_entropy(sigmoid_predictions, targets)
+    print(loss)
     return loss
 
 def train_acc():
@@ -167,17 +192,18 @@ def train_acc():
 
 def test_acc():
     return torch.mean(   ((torch.sigmoid(model(dataset['test_input'])) >= 0.5).float() == dataset['test_label']).float()   )
-model.speed()
-# Train the model using the KAN's internal training procedure with custom BCE loss and accuracy metrics
+
+model = model.speed()
+
 results = model.fit(
     dataset,
-    opt="Adam", # "LBFGS"
-    lr=1e-2,
-    steps=250,
-    batch=512,
+    opt=opt,
+    lr=LR,
+    steps=epochs,
+    batch=batch_size,
     metrics=(train_acc, test_acc),
     loss_fn=BCE_with_sigmoid,
-    lamb=lam,
+    lamb=lamb,
     # update_grid=False
 )
 
@@ -189,26 +215,6 @@ print(results)
 
 model_filename = os.path.join(output_dir, modelSaveName)
 torch.save(model.state_dict(), model_filename)
-
-plt.figure(figsize=(10,6))
-# model.plot(beta=100, in_vars=features, scale=10) #, out_vars=['y1', "y2"], title = 'My KAN', scale=0.04)
-KAN_plotter.plot_custom(model, beta=10, in_vars=features, out_vars=['ttH vs. tH'], title = 'My KAN', scale=10, tick_size=100, tick=True)
-# plt.tight_layout()
-if not continueTraining:
-    plt.savefig(output_dir + "/KAN_model.pdf")
-else:
-    plt.savefig(output_dir + "/KAN_model2.pdf")
-plt.close()
-## prune and plot model
-modelPruned = model.prune()
-modelPruned(dataset['train_input'])
-# # fig, ax = plt.subplots(figsize=(20,10))
-plt.figure(figsize=(10,6))
-# modelPruned.plot(beta=100, in_vars=features, scale=10) #, out_vars=['y1', "y2"], title = 'My KAN', scale=0.04)
-KAN_plotter.plot_custom(modelPruned, beta=10, in_vars=features, out_vars=['ttH vs. tH'], title = 'My KAN', scale=10, tick_size=100)
-# plt.tight_layout()
-plt.savefig(output_dir + "/KAN_modelPruned.pdf")
-plt.close()
 
 
 # Save training history
@@ -228,8 +234,8 @@ fig, ax = plt.subplots(1, 2, figsize=(12, 6))
 font_size = 20
 
 # Loss plot and accuracy plot
-ax[0].plot(epochs, results['train_loss'], label='Training Loss')
-ax[0].plot(epochs, results['test_loss'], label='Validation Loss')
+ax[0].plot(epochs, np.array(results['train_loss'])**2, label='Training Loss')
+ax[0].plot(epochs, np.array(results['test_loss'])**2, label='Validation Loss')
 ax[0].set_xlabel('Epochs', fontsize=font_size)
 ax[0].set_ylabel('Loss', fontsize=font_size)
 ax[0].set_yscale("log")
@@ -245,3 +251,28 @@ ax[1].legend(fontsize=0.8*font_size, loc="upper right")
 plot_filename = os.path.join(output_dir, 'TrainingHistoryKAN.pdf') if not continueTraining else os.path.join(output_dir, 'TrainingHistoryKAN2.pdf')
 fig.tight_layout()
 fig.savefig(plot_filename)
+
+
+### plot model
+model.save_plot_data = True
+model(dataset['train_input'])
+plt.figure(figsize=(10,6))
+model.plot(beta=100, in_vars=features_to_use, out_vars="ttH vs. tH", varscale=0.1) #, out_vars=['y1', "y2"], title = 'My KAN', scale=0.04)
+# KAN_plotter.plot_custom(model, beta=10, in_vars=features, out_vars=['ttH vs. tH'], title = 'My KAN', scale=10, tick_size=100, tick=True)
+# plt.tight_layout()
+if not continueTraining:
+    plt.savefig(output_dir + "/KAN_model.pdf")
+else:
+    plt.savefig(output_dir + "/KAN_model2.pdf")
+plt.close()
+# ## prune and plot model
+# modelPruned = model.prune()
+# modelPruned(dataset['train_input'])
+# # # fig, ax = plt.subplots(figsize=(20,10))
+# plt.figure(figsize=(10,6))
+# # modelPruned.plot(beta=100, in_vars=features, scale=10) #, out_vars=['y1', "y2"], title = 'My KAN', scale=0.04)
+# KAN_plotter.plot_custom(modelPruned, beta=10, in_vars=features, out_vars=['ttH vs. tH'], title = 'My KAN', scale=10, tick_size=100)
+# # plt.tight_layout()
+# plt.savefig(output_dir + "/KAN_modelPruned.pdf")
+# plt.close()
+

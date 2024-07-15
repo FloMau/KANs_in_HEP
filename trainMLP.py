@@ -45,17 +45,15 @@ val_weights_tHqCPEven = val_weights_tHqCPEven * len(val_weights_tHqCPEven) / np.
 
 train_weights = pd.concat([train_weights_ttHCPEven, train_weights_tHqCPEven]).astype(np.float32)
 val_weights = pd.concat([val_weights_ttHCPEven, val_weights_tHqCPEven]).astype(np.float32)
+## are 1.0 for all events....
 
 train_data, train_labels, train_weights = shuffle(train_data, train_labels, train_weights, random_state=0)
 val_data, val_labels, val_weights = shuffle(val_data, val_labels, val_weights, random_state=0)
 
 print("INFO: number of samples for ttH and tH:", len(df_ttHCPEven_train), len(df_tHqCPEven_train))
 
-features = train_data.columns
-
-
 # Load the configuration from the JSON file
-config_path = 'configs/MLPs/lowLevels.json'
+config_path = 'configs/MLPs/highAndLowLevels/128-64-32-16.json'
 with open(config_path, 'r') as config_file:
     config = json.load(config_file)
 
