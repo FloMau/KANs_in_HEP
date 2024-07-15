@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt 
 import mplhep as hep
-plt.style.use([hep.style.CMS])
+plt.style.use([hep.style.ROOT])
 import os
 import numpy as np
 from hist import Hist
@@ -17,7 +17,6 @@ def plot_histograms(
     log=False,
     include_flow=False,
     data=False,
-    CMSlabel="Private Work",
     lumi=None,
     return_figure=False
 ):
@@ -63,8 +62,6 @@ def plot_histograms(
     ncols = 1 if len(hists) < 4 else 2
     ax.legend(handles=new_handles, labels=labels, loc="upper right", fontsize=24, ncols=ncols)#, handlelength=3)
 
-    hep.cms.label(data=data, ax=ax, loc=0, label=CMSlabel, com=13.6, lumi=lumi)
-
     # in case the figure should be modified later on, use return_figure=True
     if not return_figure:
         if not os.path.exists(output_filename.replace(output_filename.split("/")[-1], "")):
@@ -95,35 +92,45 @@ def include_overflow_underflow(hist):
 def get_dict_hists():
 
     dict_histograms = {
-        "mass": [Hist.new.Reg(50, 100, 150).Weight(), (r"Diphoton mass [GeV]", "Density")],
-        "topMt": [Hist.new.Reg(15, 0, 250).Weight(), (r"Transverse top quark mass [GeV]", "Density")],
-        "ptH": [Hist.new.Reg(10, 0, 300).Weight(), (r"Diphoton $p_T$ [GeV]", "Density")],
-        "yH": [Hist.new.Reg(20, -3, 3).Weight(), (r"Diphoton $y$", "Density")],
+        "mass": [Hist.new.Reg(50, 100, 150).Weight(), (r"Diphoton mass [GeV]", "Fraction of events")],
+        "topMt": [Hist.new.Reg(20, 0, 300).Weight(), (r"Transverse top quark mass [GeV]", "Fraction of events")],
+        "ptH": [Hist.new.Reg(20, 0, 400).Weight(), (r"Diphoton $p_T$ [GeV]", "Fraction of events")],
+        "yH": [Hist.new.Reg(20, -3, 3).Weight(), (r"Diphoton $y$", "Fraction of events")],
+
+        "nJets": [Hist.new.Reg(13, -0.5, 12.5).Weight(), (r"Number of gen jets", "Fraction of events")],
+        "nJetsCentral": [Hist.new.Reg(11, -0.5, 10.5).Weight(), (r"Number of central jets", "Fraction of events")],
+        "nJetsForward": [Hist.new.Reg(5, -0.5, 4.5).Weight(), (r"Number of forward jets", "Fraction of events")],
+        "nBjetsCentral": [Hist.new.Reg(5, -0.5, 4.5).Weight(), (r"Number of central b-jets", "Fraction of events")],
+        "nBtags": [Hist.new.Reg(5, -0.5, 4.5).Weight(), (r"Number of b-tagged jets", "Fraction of events")],
+
+        "bJetsEta": [Hist.new.Reg(20, 0., 4.7).Weight(), (r"b-jets $\eta$", "Fraction of events")],
+
+        "leading_bJetPt": [Hist.new.Reg(20, 0, 300).Weight(), (r"b-jet $p_T$ [GeV]", "Fraction of events")],
+        "leading_bJetEta": [Hist.new.Reg(20, -4.7, 4.7).Weight(), (r"b-jet $\eta$", "Fraction of events")],
+
+        "leadingJetPt": [Hist.new.Reg(20, 0, 300).Weight(), (r"Leading jet $p_T$ [GeV]", "Fraction of events")],
+        "leadingJetEta": [Hist.new.Reg(20, -4.7, 4.7).Weight(), (r"Leading jet $\eta$", "Fraction of events")],
+
+        "subleadingJetPt": [Hist.new.Reg(20, 0, 200).Weight(), (r"Subleading jet $p_T$ [GeV]", "Fraction of events")],
+        "subleadingJetEta": [Hist.new.Reg(20, -4.7, 4.7).Weight(), (r"Subleading jet $\eta$", "Fraction of events")], 
+
+        "nLeptons": [Hist.new.Reg(4, -0.5, 3.5).Weight(), (r"Number of leptons", "Fraction of events")],
+        "leptonPt": [Hist.new.Reg(20, 0, 200).Weight(), (r"Lepton $p_T$ [GeV]", "Fraction of events")],
+        "leptonEta": [Hist.new.Reg(20, -2.5, 2.5).Weight(), (r"Lepton $\eta$", "Fraction of events")],
         
-        "nJets": [Hist.new.Reg(13, -0.5, 12.5).Weight(), (r"Number of gen jets", "Density")],
-        "nJetsCentral": [Hist.new.Reg(11, -0.5, 10.5).Weight(), (r"Number of central jets", "Density")],
-        "nJetsForward": [Hist.new.Reg(5, -0.5, 4.5).Weight(), (r"Number of forward jets", "Density")],
-        "nBjetsCentral": [Hist.new.Reg(5, -0.5, 4.5).Weight(), (r"Number of central b-jets", "Density")],
-        "nBtags": [Hist.new.Reg(5, -0.5, 4.5).Weight(), (r"Number of b-tagged jets", "Density")],
+        "leadingPhotonPt": [Hist.new.Reg(20, 0, 300).Weight(), (r"Leading photon $p_T$ [GeV]", "Fraction of events")],
+        "leadingPhotonEta": [Hist.new.Reg(20, -2.5, 2.5).Weight(), (r"Leading photon $\eta$", "Fraction of events")],
+        "subleadingPhotonPt": [Hist.new.Reg(20, 0, 200).Weight(), (r"Subleading photon $p_T$ [GeV]", "Fraction of events")],
+        "subleadingPhotonEta": [Hist.new.Reg(20, -2.5, 2.5).Weight(), (r"Subleading photon $\eta$", "Fraction of events")],
 
-        "bJetsEta": [Hist.new.Reg(20, 0., 4.7).Weight(), (r"b-jets $\eta$", "Density")],
-        "leadingJetPt": [Hist.new.Reg(10, 0, 300).Weight(), (r"Leading jet $p_T$ [GeV]", "Density")],
-        "subleadingJetPt": [Hist.new.Reg(10, 0, 200).Weight(), (r"Subleading jet $p_T$ [GeV]", "Density")],
+        "met": [Hist.new.Reg(20, 0, 200).Weight(), (r"MET $p_T$ [GeV]", "Fraction of events")],
 
-        "nLeptons": [Hist.new.Reg(4, -0.5, 3.5).Weight(), (r"Number of leptons", "Density")],
-        "leptonPt": [Hist.new.Reg(20, 0, 200).Weight(), (r"Lepton $p_T$ [GeV]", "Density")],
-        
-        "leadingPhotonPt": [Hist.new.Reg(10, 0, 300).Weight(), (r"Leading photon $p_T$ [GeV]", "Density")],
-        "subleadingPhotonPt": [Hist.new.Reg(10, 0, 200).Weight(), (r"Subleading photon $p_T$ [GeV]", "Density")],
-
-        "met": [Hist.new.Reg(10, 0, 200).Weight(), (r"MET $p_T$ [GeV]", "Density")],
-
-        "rapiditySumJH": [Hist.new.Reg(15, 0, 6).Weight(), (r"$y^{j} \oplus y^{\gamma\gamma}$", "Density")],
-        "rapidityDiffJH": [Hist.new.Reg(15, 0, 6).Weight(), (r"$|\Delta y(j, \gamma\gamma)|$", "Density")],
-        "DeltaY_Hb": [Hist.new.Reg(15, 0, 5).Weight(), (r"$|\Delta y(\gamma\gamma, b)|$", "Density")],
-        "DeltaY_Hl": [Hist.new.Reg(15, 0, 5).Weight(), (r"$|\Delta y(\gamma\gamma, l)|$", "Density")],
-        "delta_eta_b_j": [Hist.new.Reg(20, 0, 7).Weight(), (r"$\Delta \eta(b,j)$", "Density")],
-        "delta_r_jet_pho": [Hist.new.Reg(60, 0, 8).Weight(), (r"$\Delta R(j, \gamma)$", "Density")]
+        "rapiditySumJH": [Hist.new.Reg(15, 0, 6).Weight(), (r"$y^{j} \oplus y^{\gamma\gamma}$", "Fraction of events")],
+        "rapidityDiffJH": [Hist.new.Reg(15, 0, 6).Weight(), (r"$|\Delta y(j, \gamma\gamma)|$", "Fraction of events")],
+        "DeltaY_Hb": [Hist.new.Reg(15, 0, 5).Weight(), (r"$|\Delta y(\gamma\gamma, b)|$", "Fraction of events")],
+        "DeltaY_Hl": [Hist.new.Reg(15, 0, 5).Weight(), (r"$|\Delta y(\gamma\gamma, l)|$", "Fraction of events")],
+        "delta_eta_b_j": [Hist.new.Reg(20, 0, 7).Weight(), (r"$\Delta \eta(b,j)$", "Fraction of events")],
+        "delta_r_jet_pho": [Hist.new.Reg(60, 0, 8).Weight(), (r"$\Delta R(j, \gamma)$", "Fraction of events")]
     }
 
     return dict_histograms
