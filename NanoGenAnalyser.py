@@ -22,7 +22,8 @@ def event_selection(events, channel="lep"):
 
     genIsoPhotons = genIsoPhotons[
         (genIsoPhotons.pt > 25) &
-        (np.abs(genIsoPhotons.eta) < 1.4442) | ((np.abs(genIsoPhotons.eta) < 2.5) & (np.abs(genIsoPhotons.eta) > 1.566))
+        # (np.abs(genIsoPhotons.eta) < 1.4442) | ((np.abs(genIsoPhotons.eta) < 2.5) & (np.abs(genIsoPhotons.eta) > 1.566))
+        (np.abs(genIsoPhotons.eta) < 2.5)
     ]
 
     ### string vs. dot notation, use string notation to assign values!
@@ -141,6 +142,13 @@ def main(path, hists, entryStop=None):
 
     hists["ptH"][0].fill(diphoton.pt, weight=weights)
     hists["yH"][0].fill(diphoton.rapidity, weight=weights)
+
+    hists["leadingPhotonPt"][0].fill(phoLead.pt, weight=weights)
+    hists["leadingPhotonEta"][0].fill(phoLead.eta, weight=weights)
+
+    hists["subleadingPhotonPt"][0].fill(phoSublead.pt, weight=weights)
+    hists["subleadingPhotonEta"][0].fill(phoSublead.eta, weight=weights)
+
     hists["nJets"][0].fill(ak.num(events.GenJet), weight=weights)
     hists["nLeptons"][0].fill(ak.num(events.GenDressedLepton), weight=weights)
 
@@ -180,6 +188,12 @@ def main(path, hists, entryStop=None):
     # identify by requiring same pt, might be an issue if two jets in an event have same pt...
     jetLead = ak.firsts(genJets[~(genJets.pt == bJetLead.pt)])
 
+    hists["leading_bJetPt"][0].fill(bJetLead.pt, weight=weights) 
+    hists["leading_bJetEta"][0].fill(bJetLead.eta, weight=weights) 
+
+    hists["leadingJetPt"][0].fill(jetLead.pt, weight=weights)
+    hists["leadingJetEta"][0].fill(jetLead.eta, weight=weights)
+
     hists["delta_eta_b_j"][0].fill(np.abs(jetLead.eta - bJetLead.eta), weight=weights)
 
     hists["rapiditySumJH"][0].fill(
@@ -213,6 +227,8 @@ if __name__ == "__main__":
     filenamesTHqCPOdd = glob.glob(basepath + "sampleGeneration/tHq_TLep_k0_ktilde1/*.root")
     filenamesTHqCPOddCrossCheck = glob.glob(basepath + "sampleGeneration/tHq_TLep_k0_ktilde1_cross_check/*.root")
 
+    filenamesTtHCPEven = [f for f in filenamesTtHCPEven if not "_5.root" in f]
+
     histsTtHCPEven = plotter.get_dict_hists()
     histsTtHCPOdd = plotter.get_dict_hists()
     histsTHqCPEven = plotter.get_dict_hists()
@@ -220,21 +236,22 @@ if __name__ == "__main__":
     histsTHqCPEven5FS = plotter.get_dict_hists()
     histsTHqCPOddCrossCheck = plotter.get_dict_hists()
 
-    stop = None
+    stop = None #
+    # stop = 10_000
     # stop = 300
-    # for file in filenamesTtHCPEven:
-    #     histsTtHCPEven = main(file, histsTtHCPEven, entryStop=stop)
+    for file in filenamesTtHCPEven:
+        histsTtHCPEven = main(file, histsTtHCPEven, entryStop=stop)
     # for file in filenamesTtHCPOdd:
     #     histsTtHCPOdd = main(file, histsTtHCPOdd, entryStop=stop)
-    # for file in filenamesTHqCPEven:
-    #     histsTHqCPEven = main(file, histsTHqCPEven, entryStop=stop)
-    for file in filenamesTHqCPOdd:
-        histsTHqCPOdd = main(file, histsTHqCPOdd, entryStop=stop)
+    for file in filenamesTHqCPEven:
+        histsTHqCPEven = main(file, histsTHqCPEven, entryStop=stop)
+    # for file in filenamesTHqCPOdd:
+    #     histsTHqCPOdd = main(file, histsTHqCPOdd, entryStop=stop)
     # for file in filenamesTHqCPEven5FS:
     #     histsTHqCPEven5FS = main(file, histsTHqCPEven5FS, entryStop=stop)
     # for file in filenamesTHqCPOddCrossCheck:
-    for file in filenamesTHqCPOddCrossCheck:
-        histsTHqCPOddCrossCheck = main(file, histsTHqCPOddCrossCheck, entryStop=stop)
+    # for file in filenamesTHqCPOddCrossCheck:
+    #     histsTHqCPOddCrossCheck = main(file, histsTHqCPOddCrossCheck, entryStop=stop)
 
 
     labels = ["ttH CP even", "ttH CP odd", "tH CP even", "tH CP odd"]
@@ -246,7 +263,14 @@ if __name__ == "__main__":
         "nBjetsCentral",
         "nJetsCentral",
         "nJetsForward",
-        "bJetsEta",
+        "leadingJetPt",
+        "leadingJetEta",
+        "leadingPhotonPt",
+        "leadingPhotonEta",
+        "subleadingPhotonPt",
+        "subleadingPhotonEta",
+        "leading_bJetPt",
+        "leading_bJetEta",
         "delta_eta_b_j",
         "nLeptons",
         "leptonPt",
@@ -278,10 +302,19 @@ if __name__ == "__main__":
         #     include_flow=True
         # )
 
+        # plotter.plot_histograms(
+        #     hists=[histsTHqCPOdd[histName][0], histsTHqCPOddCrossCheck[histName][0]],
+        #     process_labels=["tHq CP-odd", "Cross-check"],
+        #     output_filename=f"./PlotsCrossCheck/{histName}.pdf",
+        #     normalize=True,
+        #     axis_labels=histsTtHCPEven[histName][1],
+        #     include_flow=True
+        # )
+
         plotter.plot_histograms(
-            hists=[histsTHqCPOdd[histName][0], histsTHqCPOddCrossCheck[histName][0]],
-            process_labels=["tHq CP-odd", "Cross-check"],
-            output_filename=f"./PlotsCrossCheck/{histName}.pdf",
+            hists=[histsTtHCPEven[histName][0], histsTHqCPEven[histName][0]],
+            process_labels=[r"$t\bar{t}H$", r"$tH$"],
+            output_filename=f"./PlotsInputFeatures/{histName}.pdf",
             normalize=True,
             axis_labels=histsTtHCPEven[histName][1],
             include_flow=True
