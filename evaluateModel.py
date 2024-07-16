@@ -219,24 +219,8 @@ ax_roc_combined.legend(loc="best")
 fig_roc_combined.tight_layout()
 fig_roc_combined.savefig(os.path.join(output_dir, 'combined_ROC_curves.pdf'))
 plt.close(fig_roc_combined)
-"""
-fig, ax = plt.subplots()
-i_MLP = 0
-i_KAN = 0
-i_KAN_others = 0
-for model_key in dict_AUC_nParams.keys():
-    auc, auc_std, n_params = dict_AUC_nParams[model_key]
-    markers = ["X", "o", "P", "*", "^", "v", "<", ">", "."]
-    if "MLP" in model_key:
-        ax.errorbar(n_params, auc, yerr=auc_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=13, elinewidth=3, alpha = 0.7)
-        i_MLP += 1
-    elif ("KAN" in model_key) and (not "g" in model_key) and (not "Adam" in model_key):
-        ax.errorbar(n_params, auc, yerr=auc_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=13, elinewidth=3, alpha = 0.7)
-        i_KAN +=1
-    else:
-        ax.errorbar(n_params, auc, yerr=auc_std, color="tab:red", fmt=markers[i_KAN_others], label=model_key, ms=13, elinewidth=3, alpha = 0.7)
-        i_KAN_others +=1
-"""
+
+# AUC vs. N(params) plot
 fig, ax = plt.subplots()
 i_MLP = 0
 i_KAN = 0
