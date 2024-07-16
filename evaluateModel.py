@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import roc_curve, auc, roc_auc_score
+from sklearn.metrics import roc_curve
 import matplotlib.pyplot as plt
 import mplhep as hep
 from hist import Hist
@@ -27,9 +27,9 @@ model_dirs = {
     "MLP 1x8": "./TrainingOutputs/MLP/LowAndHighLevels/8/",
 #     "KAN 25-10-5-1": "./KAN_trainingsLowLevels/AllFeatures_25_10_5_1",
     "KAN 22-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-1-LR1e-3/",
-    "KAN 22-1 g=50": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-1-grid50/",
     "KAN 22-44-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-44-1/",
     "KAN 22-10-5-2-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-10-5-2-1/",
+    "KAN 22-1 g=50": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-1-grid50/",
     "KAN 22-10-5-2-1 Adam": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-10-5-2-1_Adam/",
 }
 KAN_models_dict = {
@@ -94,8 +94,9 @@ def create_histogram(predictions, weights, bins=20, range=(0, 1)):
     return hist
 
 # Function to calculate ROC AUC with bootstrapping
-def bootstrap_roc_auc(predictions_dict, ttH_weights, tHq_weights, n_bootstrap=100):
+def bootstrap_roc_auc_rejection(predictions_dict, ttH_weights, tHq_weights, n_bootstrap=100, eff_for_rejection=0.8):
     aucs = []
+    rejections = []
     y_true = np.concatenate([np.zeros(len(predictions_dict['ttH'])), np.ones(len(predictions_dict['tHq']))])
     y_score = np.concatenate([predictions_dict['ttH'], predictions_dict['tHq']])
     sample_weight = np.concatenate([ttH_weights, tHq_weights])
@@ -112,25 +113,26 @@ def bootstrap_roc_auc(predictions_dict, ttH_weights, tHq_weights, n_bootstrap=10
         fpr, tpr, _ = roc_curve(y_true=y_true_resampled, y_score=y_score_resampled, sample_weight=sample_weight_resampled)
         roc_auc = integrate.trapz(tpr, fpr)
         aucs.append(roc_auc)
+        rejection = find_rejection_for_tpr(fpr, tpr, eff_for_rejection)
+        rejections.append(rejection)
     # print(f"{aucs=}")
     # print(np.mean(aucs), np.std(aucs))
     # exit()
-    return np.mean(aucs), np.std(aucs)
+    return np.mean(aucs), np.std(aucs), np.mean(rejections), np.std(rejections)
 
-# # Load configuration from a JSON file
-# config_path = 'config.json'
-# with open(config_path, 'r') as config_file:
-#     config = json.load(config_file)
-
-# # Extract settings from the config
-# features_to_use = config['features_to_use']
-# output_dir = config['output_dir']
-os.makedirs(output_dir, exist_ok=True)
+def find_rejection_for_tpr(fpr, tpr, target_tpr):
+    # Find the index of the closest TPR value to the target TPR
+    index = np.argmin(np.abs(tpr - target_tpr))
+    # Get the corresponding FPR value
+    fpr_value = fpr[index]
+    # Calculate the rejection (1/FPR)
+    rejection = 1 / fpr_value if fpr_value != 0 else 1
+    return rejection
 
 
 # Initialize figures for combined ROC curves
 fig_roc_combined, ax_roc_combined = plt.subplots()
-dict_AUC_nParams = {}
+dict_AUC_rejection_nParams = {}
 
 # Loop through each model directory
 for model_label, model_dir in model_dirs.items():
@@ -193,9 +195,12 @@ for model_label, model_dir in model_dirs.items():
     )
     roc_auc = integrate.trapz(tpr, fpr)
 
-    mean_auc, std_auc = bootstrap_roc_auc(predictions_dict, ttH_weights, tHq_weights, n_bootstrap=100)
+    eff_for_rejection = 0.8
+    rejection = find_rejection_for_tpr(fpr, tpr, eff_for_rejection)
 
-    dict_AUC_nParams[model_label] = np.array([mean_auc, std_auc, n_params])
+    mean_auc, std_auc, mean_rejection, std_rejection = bootstrap_roc_auc_rejection(predictions_dict, ttH_weights, tHq_weights, n_bootstrap=100, eff_for_rejection=eff_for_rejection)
+
+    dict_AUC_rejection_nParams[model_label] = np.array([mean_auc, std_auc, mean_rejection, std_rejection, n_params])
     n_params_human_readable = human_readable_params(n_params)
 
     print(
@@ -221,37 +226,66 @@ fig_roc_combined.savefig(os.path.join(output_dir, 'combined_ROC_curves.pdf'))
 plt.close(fig_roc_combined)
 
 # AUC vs. N(params) plot
-fig, ax = plt.subplots()
+fig_auc, ax_auc = plt.subplots()
+fig_rej, ax_rej = plt.subplots()
 i_MLP = 0
 i_KAN = 0
 i_KAN_others = 0
-for model_key in dict_AUC_nParams.keys():
-    auc, auc_std, n_params = dict_AUC_nParams[model_key]
+for model_key in dict_AUC_rejection_nParams.keys():
+    auc, auc_std, rejection, rejection_std, n_params = dict_AUC_rejection_nParams[model_key]
     markers = ["X", "o", "P", "*", "^", "v", "<", ">", "."]
     if "MLP" in model_key:
-        errorbar = ax.errorbar(n_params, auc, yerr=auc_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
+        errorbar_auc = ax_auc.errorbar(n_params, auc, yerr=auc_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
+        errorbar_rej = ax_rej.errorbar(n_params, rejection, yerr=rejection_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
         i_MLP += 1
     elif ("KAN" in model_key) and (not "g" in model_key) and (not "Adam" in model_key):
-        errorbar = ax.errorbar(n_params, auc, yerr=auc_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
+        errorbar_auc = ax_auc.errorbar(n_params, auc, yerr=auc_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
+        errorbar_rej = ax_rej.errorbar(n_params, rejection, yerr=rejection_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
         i_KAN += 1
     else:
-        errorbar = ax.errorbar(n_params, auc, yerr=auc_std, color="tab:red", fmt=markers[i_KAN_others], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
+        errorbar_auc = ax_auc.errorbar(n_params, auc, yerr=auc_std, color="tab:red", fmt=markers[i_KAN_others], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
+        errorbar_rej = ax_rej.errorbar(n_params, rejection, yerr=rejection_std, color="tab:red", fmt=markers[i_KAN_others], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
         i_KAN_others += 1
 
     # Customize markers' alpha
-    for cap in errorbar[1]:
+    for cap in errorbar_auc[1]:
         cap.set_alpha(1)  # Set markers' alpha to 1
 
     # Customize error bars' alpha and linestyle
-    for line in errorbar[2]:
+    for line in errorbar_auc[2]:
+        # line.set_alpha(0.7)  # Set error bars' alpha
+        line.set_linestyle('--')  # Set error bars' linestyle to dashed
+    # Customize markers' alpha
+    for cap in errorbar_rej[1]:
+        cap.set_alpha(1)  # Set markers' alpha to 1
+
+    # Customize error bars' alpha and linestyle
+    for line in errorbar_rej[2]:
         # line.set_alpha(0.7)  # Set error bars' alpha
         line.set_linestyle('--')  # Set error bars' linestyle to dashed
 
-ax.legend()
-ax.set_xlabel("Number of trainable parameters")
-ax.set_ylabel("ROC AUC")
-fig.savefig(os.path.join(output_dir, 'AUC_vs_N.pdf'))
-ax.set_xscale("log")
-fig.savefig(os.path.join(output_dir, 'AUC_vs_N_log.pdf'))
-plt.close(fig)
+# perhaps need to remove error bars from legend, now it shows small ones hidden by markers
+ax_auc.legend(ncols=3, fontsize=16, columnspacing=0.5)
+ax_auc.set_xlabel("Number of trainable parameters")
+ax_auc.set_ylabel("ROC AUC")
+# ax_auc.set_ylim(ax_auc.get_ylim()[0], 1.15*ax_auc.get_ylim()[1])
+ax_auc.set_ylim(0.9, 0.955)
+fig_auc.tight_layout()
+fig_auc.savefig(os.path.join(output_dir, 'AUC_vs_N.pdf'))
+ax_auc.set_xscale("log")
+fig_auc.tight_layout()
+fig_auc.savefig(os.path.join(output_dir, 'AUC_vs_N_log.pdf'))
+plt.close(fig_auc)
+
+ax_rej.legend(ncols=3, fontsize=16, columnspacing=0.5)
+ax_rej.set_xlabel("Number of trainable parameters")
+ax_rej.set_ylabel(r"$t\bar{t}H$ rejection $\left(\epsilon_{tH}=0.80\right)$")
+# ax_rej.set_ylim(ax_rej.get_ylim()[0], 1.15*ax_rej.get_ylim()[1])
+ax_rej.set_ylim(0, 1.15*ax_rej.get_ylim()[1])
+fig_rej.tight_layout()
+fig_rej.savefig(os.path.join(output_dir, 'rej_vs_N.pdf'))
+ax_rej.set_xscale("log")
+fig_rej.tight_layout()
+fig_rej.savefig(os.path.join(output_dir, 'rej_vs_N_log.pdf'))
+plt.close(fig_rej)
 
