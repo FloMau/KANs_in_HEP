@@ -10,7 +10,7 @@ from copy import deepcopy
 def plot_histograms(
     hists,
     process_labels,
-    output_filename, 
+    output_filename = "./plot.pdf", 
     axis_labels=("x-axis","Events"), 
     normalize=False,
     linestyle="solid",
@@ -18,7 +18,8 @@ def plot_histograms(
     include_flow=False,
     data=False,
     lumi=None,
-    return_figure=False
+    return_figure=False,
+    ax = None,
 ):
 
     if include_flow:
@@ -30,7 +31,11 @@ def plot_histograms(
     values = [_hist.values() for _hist in hists]
     uncertainties = [np.sqrt(_hist.variances()) for _hist in hists]
 
-    fig, ax = plt.subplots(figsize=(10,9))
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10,9))
+    else:
+        # meant to be used with fig created outside of this function
+        fig = None
     hep.histplot(
         values,
         label=process_labels,
@@ -83,7 +88,7 @@ def include_overflow_underflow(hist):
     overflow, underflow = bin_contents[-1], bin_contents[0]
     n_bins = len(bin_contents) - 2 
     # print(new_hist.view(flow=True))
-    new_hist[1] += underflow
+    new_hist[0] += underflow
     new_hist[n_bins-1] += overflow
     # print(new_hist.view(flow=True))
     return new_hist
@@ -125,12 +130,40 @@ def get_dict_hists():
 
         "met": [Hist.new.Reg(20, 0, 200).Weight(), (r"MET $p_T$ [GeV]", "Fraction of events")],
 
-        "rapiditySumJH": [Hist.new.Reg(15, 0, 6).Weight(), (r"$y^{j} \oplus y^{\gamma\gamma}$", "Fraction of events")],
-        "rapidityDiffJH": [Hist.new.Reg(15, 0, 6).Weight(), (r"$|\Delta y(j, \gamma\gamma)|$", "Fraction of events")],
-        "DeltaY_Hb": [Hist.new.Reg(15, 0, 5).Weight(), (r"$|\Delta y(\gamma\gamma, b)|$", "Fraction of events")],
-        "DeltaY_Hl": [Hist.new.Reg(15, 0, 5).Weight(), (r"$|\Delta y(\gamma\gamma, l)|$", "Fraction of events")],
-        "delta_eta_b_j": [Hist.new.Reg(20, 0, 7).Weight(), (r"$\Delta \eta(b,j)$", "Fraction of events")],
+        "rapiditySumJH": [Hist.new.Reg(20, 0, 6).Weight(), (r"$y^{j} \oplus y^{\gamma\gamma}$", "Fraction of events")],
+        "rapidityDiffJH": [Hist.new.Reg(20, -6, 6).Weight(), (r"$\Delta y(j, \gamma\gamma)$", "Fraction of events")],
+        "DeltaY_Hb": [Hist.new.Reg(20, -5, 5).Weight(), (r"$\Delta y(\gamma\gamma, b)$", "Fraction of events")],
+        "DeltaY_Hl": [Hist.new.Reg(20, -5, 5).Weight(), (r"$\Delta y(\gamma\gamma, l)$", "Fraction of events")],
+        "delta_eta_b_j": [Hist.new.Reg(20, -7, 7).Weight(), (r"$\Delta \eta(b,j)$", "Fraction of events")],
         "delta_r_jet_pho": [Hist.new.Reg(60, 0, 8).Weight(), (r"$\Delta R(j, \gamma)$", "Fraction of events")]
     }
 
     return dict_histograms
+
+tex_feature_names = {
+'ptH': r'$\mathit{p}_T(\mathit{\gamma\gamma})$', # r'$p_{T}(\gamma\gamma)$', 
+'yH': '$\mathit{y}(\mathit{\gamma\gamma})$',
+'phiH': '$\mathit{\phi}(\mathit{\gamma\gamma})$',
+'nJets': '$\mathit{N}$(jets)',
+'nLeptons': "$\mathit{N}$(leptons)",
+'nJetsCentral': "nJC",
+'nBjetsCentral': "$\mathit{N}$($\mathit{b}$-jets)",
+'nJetsForward': "nJF",
+'met': "$\mathit{E}_T^{miss}$",
+'metPhi': r"$\mathit{\phi}\left(\mathit{E}_T^{miss}\right)$",
+'topMt': "$\mathit{m}_T(\mathit{t})$",
+'delta_eta_b_j': "$\Delta\mathit{\eta(j, b)}$",
+'rapiditySumJH': "$\mathit{y}^{j} \oplus y^{\mathit{\gamma\gamma}}$",
+'rapidityDiffJH': "$\Delta \mathit{y}(\mathit{j}, \mathit{\gamma\gamma})$",
+'DeltaY_Hb': "$\Delta \mathit{y}(\mathit{b, \gamma\gamma})$",
+'DeltaY_Hl': "$\Delta \mathit{y}(\mathit{\ell}, \mathit{\gamma\gamma})$",
+"jetLeadPt": "$\mathit{p}_T(\mathit{j})$",
+"jetLeadEta": "$\mathit{\eta}(\mathit{j})$",
+"jetLeadPhi": "$\mathit{\phi}(\mathit{j})$",
+"bJetPt": "$\mathit{p}_T(\mathit{b})$",
+"bJetEta": "$\mathit{\eta}(\mathit{b})$",
+"bJetPhi": "$\mathit{\phi}(\mathit{b})$",
+"leptonPt": "$\mathit{p}_T(\mathit{\ell})$",
+"leptonEta": "$\mathit{\eta}(\mathit{\ell})$",
+"leptonPhi": "$\mathit{\phi}(\mathit{\ell})$",
+}

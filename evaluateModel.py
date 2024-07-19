@@ -21,26 +21,45 @@ sys.path.append("./..")
 from modules import plotter
 
 # Dictionary with paths to separate trainings
+# model_dirs = {
+#     "MLP 128-64-32-16": "./TrainingOutputs/MLP/LowAndHighLevels/128-64-32-16/",
+#     "MLP 1x32": "./TrainingOutputs/MLP/LowAndHighLevels/32/",
+#     "MLP 1x8": "./TrainingOutputs/MLP/LowAndHighLevels/8/",
+# #     "KAN 25-10-5-1": "./KAN_trainingsLowLevels/AllFeatures_25_10_5_1",
+#     "KAN 22-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-1-LR1e-3/",
+#     "KAN 22-44-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-44-1/",
+#     "KAN 22-10-5-2-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-10-5-2-1/",
+#     "KAN 22-1 g=50": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-1-grid50/",
+#     "KAN 22-10-5-2-1 Adam": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-10-5-2-1_Adam/",
+# }
+
 model_dirs = {
-    "MLP 128-64-32-16": "./TrainingOutputs/MLP/LowAndHighLevels/128-64-32-16/",
-    "MLP 1x32": "./TrainingOutputs/MLP/LowAndHighLevels/32/",
-    "MLP 1x8": "./TrainingOutputs/MLP/LowAndHighLevels/8/",
+    # "MLP 128-64-32-16": "./TrainingOutputs/MLPs18Jul2024/128-64-32-16/",
+    "MLP 64-32-16": "./TrainingOutputs/MLPs18Jul2024/64-32-16/",
+    "MLP 1x32": "./TrainingOutputs/MLPs18Jul2024/32/",
+    "MLP 1x8": "./TrainingOutputs/MLPs18Jul2024/8/",
 #     "KAN 25-10-5-1": "./KAN_trainingsLowLevels/AllFeatures_25_10_5_1",
-    "KAN 22-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-1-LR1e-3/",
-    "KAN 22-44-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-44-1/",
-    "KAN 22-10-5-2-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-10-5-2-1/",
-    "KAN 22-1 g=50": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-1-grid50/",
-    "KAN 22-10-5-2-1 Adam": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-10-5-2-1_Adam/",
-}
-KAN_models_dict = {
-    "KAN 22-1": KAN(width=[22, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-44-1": KAN(width=[22, 44, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-1 g=50": KAN(width=[22, 1], grid=50, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-10-5-2-1 Adam": KAN(width=[22, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-10-5-2-1": KAN(width=[22, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-1": "./TrainingOutputs/KANs18Jul2024/22-1-LBFGS/",
+    "KAN 22-1 Adam": "./TrainingOutputs/KANs18Jul2024/22-1-Adam/",
+    "KAN 22-44-1": "./TrainingOutputs/KANs18Jul2024/22-44-1-LBFGS/",
+    "KAN 22-44-1 Adam": "./TrainingOutputs/KANs18Jul2024/22-44-1-Adam/",
+    "KAN 22-10-5-2-1": "./TrainingOutputs/KANs18Jul2024/22-10-5-2-1-LBFGS/",
+    "KAN 22-10-5-2-1 Adam": "./TrainingOutputs/KANs18Jul2024/22-10-5-2-1_Adam/",
+    "KAN 22-1 g=50": "./TrainingOutputs/KANs18Jul2024/22-1-LBFGS-grid50/",
 }
 
-output_dir = "./TrainingOutputs/KAN_vs_MLP/ROC_curves/"
+
+KAN_models_dict = {
+    "KAN 22-1": KAN(width=[22, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-1 Adam": KAN(width=[22, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-44-1": KAN(width=[22, 44, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-44-1 Adam": KAN(width=[22, 44, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-1 g=50": KAN(width=[22, 1], grid=50, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-10-5-2-1": KAN(width=[22, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-10-5-2-1 Adam": KAN(width=[22, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+}
+
+output_dir = "./TrainingOutputs/KAN_vs_MLP/ROC_curves18Jul2024/"
 os.makedirs(output_dir, exist_ok=True)
 
 def human_readable_params(num):
@@ -54,7 +73,7 @@ def human_readable_params(num):
 
 # Read test datasets
 input_dir = "./ML_datasets"
-stop = 33_000
+stop = 100_000
 df_ttH = pd.read_csv(os.path.join(input_dir, 'ttHCPEven_test.csv'), nrows=stop)
 df_tHq = pd.read_csv(os.path.join(input_dir, 'tHqCPEven_test.csv'), nrows=stop)
 

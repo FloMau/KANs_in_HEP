@@ -32,35 +32,8 @@ features_to_use = [
     "delta_eta_b_j", "rapiditySumJH", "DeltaY_Hb", "DeltaY_Hl"
 ]
 
-short_names = {
-'ptH': r'$\mathit{p}_{\mathrm{T}}(\mathit{\gamma\gamma})$', # r'$p_{T}(\gamma\gamma)$', 
-'yH': '$\mathit{y}(\mathit{\gamma\gamma})$',
-'phiH': '$\mathit{\phi}(\mathit{\gamma\gamma})$',
-'nJets': '$\mathit{N}$(jets)',
-'nLeptons': "$\mathit{N}$(leptons)",
-'nJetsCentral': "nJC",
-'nBjetsCentral': "$\mathit{N}$($\mathit{b}$-jets)",
-'nJetsForward': "nJF",
-'met': "$\mathit{E}_T^{miss}$",
-'metPhi': r"$\mathit{\phi}\left(\mathit{E}_T^{miss}\right)$",
-'topMt': "$\mathit{m}_T(\mathit{t})$",
-'delta_eta_b_j': "$\Delta\mathit{\eta(b, j)}$",
-'rapiditySumJH': "$\mathit{y}^{j} \oplus y^{\mathit{\gamma\gamma}}$",
-'rapidityDiffJH': "$\Delta \mathit{y}(\mathit{j}, \mathit{\gamma\gamma})$",
-'DeltaY_Hb': "$\Delta \mathit{y}(\mathit{\gamma\gamma}, b)$",
-'DeltaY_Hl': "$\Delta \mathit{y}(\mathit{\gamma\gamma}, \mathit{\ell})$",
-"jetLeadPt": "$\mathit{p}_T(\mathit{j})$",
-"jetLeadEta": "$\mathit{\eta}(\mathit{j})$",
-"jetLeadPhi": "$\mathit{\phi}(\mathit{j})$",
-"bJetPt": "$\mathit{p}_T(\mathit{b})$",
-"bJetEta": "$\mathit{\eta}(\mathit{b})$",
-"bJetPhi": "$\mathit{\phi}(\mathit{b})$",
-"leptonPt": "$\mathit{p}_T(\mathit{\ell})$",
-"leptonEta": "$\mathit{\eta}(\mathit{\ell})$",
-"leptonPhi": "$\mathit{\phi}(\mathit{\ell})$",
-}
-
-labels = [short_names[f] if f in short_names.keys() else f for f in features_to_use]
+tex_feature_names = plotter.tex_feature_names
+labels = [tex_feature_names[f] if f in tex_feature_names.keys() else f for f in features_to_use]
 
 
 

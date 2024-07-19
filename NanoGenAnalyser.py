@@ -221,6 +221,7 @@ def main(path, hists, entryStop=None):
 if __name__ == "__main__":
 
     filenamesTtHCPEven = glob.glob(basepath + "sampleGeneration/ttHCPEven/*.root")
+    filenamesTtHCPEven = glob.glob("./sampleGeneration/ttH/*.root")
     filenamesTtHCPOdd = glob.glob(basepath + "sampleGeneration/ttHCPOdd/*.root")
     filenamesTHqCPEven = glob.glob(basepath + "sampleGeneration/tHq_TLep_k1_ktilde0/*.root")
     filenamesTHqCPEven5FS = glob.glob(basepath + "sampleGeneration/tHq_TLep_k1_ktilde0_5FS/*.root")

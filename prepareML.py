@@ -130,12 +130,10 @@ def main(path, entryStop):
 
 
 
-basepath = "/net/scratch_cms3a/mausolf/HttCPAnalysis/NanoGenStudies/"
-filenamesTtHCPEven = glob.glob(basepath + "sampleGeneration/ttHCPEven/*.root")
-filenamesTHqCPEven = glob.glob(basepath + "sampleGeneration/tHq_TLep_k1_ktilde0/*.root")
-
-
-# filenamesTtHCPEven = [f for f in filenamesTtHCPEven if not "_5.root" in f]
+basepath_tHq = "/net/scratch_cms3a/mausolf/HttCPAnalysis/NanoGenStudies/"
+basepath_ttH = "./sampleGeneration/ttH/"
+filenamesTtHCPEven = glob.glob(basepath_ttH + "/*.root")
+filenamesTHqCPEven = glob.glob(basepath_tHq + "sampleGeneration/tHq_TLep_k1_ktilde0/*.root")
 
 stop = None
 # stop = 300
@@ -157,10 +155,10 @@ for df, name in zip([dfTtHCPEven, dfTHqCPEven], ["ttHCPEven", "tHqCPEven"]):
     print(name, len(df))
 
     # First split: train set and temp set
-    train_df, temp_df = train_test_split(df, test_size=0.4, random_state=42)
+    train_df, temp_df = train_test_split(df, test_size=4/7, random_state=42)
 
     # Second split: validation set and test set
-    val_df, test_df = train_test_split(temp_df, test_size=0.5, random_state=42)
+    val_df, test_df = train_test_split(temp_df, test_size=0.75, random_state=42)
 
     # Save the DataFrames to CSV files
     train_df.to_csv(os.path.join(output_dir, f'{name}_train.csv'), index=False)
