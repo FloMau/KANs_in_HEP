@@ -11,8 +11,8 @@
     ],
     "epochs": 1000,
     "patience": 25,
-    "learning_rate": 0.001,
-    "batch_size": 512,
+    "learning_rate": 3e-4,
+    "batch_size": 256,
     "num_nodes": [32],
-    "output_dir": "./TrainingOutputs/MLP/LowAndHighLevels/32/"
+    "output_dir": "./TrainingOutputs/MLPs18Jul2024/32/"
 }

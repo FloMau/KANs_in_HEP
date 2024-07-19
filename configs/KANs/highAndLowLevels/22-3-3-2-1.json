@@ -1,0 +1,23 @@
+{
+    "features_to_use": [
+        "ptH", "yH", "phiH",
+        "nJets","nLeptons", "nBjetsCentral",
+        "met", "metPhi",
+        "leptonPt", "leptonEta", "leptonPhi",
+        "topMt",
+        "bJetPt", "bJetEta", "bJetPhi",
+        "jetLeadPt", "jetLeadEta", "jetLeadPhi",
+        "delta_eta_b_j", "rapiditySumJH", "DeltaY_Hb", "DeltaY_Hl"
+    ],
+    "epochs": 1000,
+    "patience": 25,
+    "optimizer": "LBFGS",
+    "learning_rate": 1e-3,
+    "batch_size": -1,
+    "num_nodes": [22, 3, 3, 2, 1],
+    "lamb": 0,
+    "grid": 5,
+    "k": 3,
+    "output_dir": "./TrainingOutputs/KANs18Jul2024/22-3-3-2-1-LBFGS/",
+    "update_grid": "True"
+}
