@@ -14,6 +14,19 @@ plt.style.use([hep.style.ROOT])
 import json
 import shutil
 import os
+import argparse
+
+# Set up the argument parser
+parser = argparse.ArgumentParser(description='Train KAN models with specified configuration.')
+parser.add_argument('--config', type=str, required=True, help='Path to the configuration file.')
+
+# Parse the arguments
+args = parser.parse_args()
+
+# Load the configuration file
+config_path = args.config
+with open(config_path, 'r') as config_file:
+    config = json.load(config_file)
 
 # Directory where the datasets are stored
 input_dir = "./ML_datasets"
@@ -51,11 +64,6 @@ train_data, train_labels, train_weights = shuffle(train_data, train_labels, trai
 val_data, val_labels, val_weights = shuffle(val_data, val_labels, val_weights, random_state=0)
 
 print("INFO: number of samples for ttH and tH:", len(df_ttHCPEven_train), len(df_tHqCPEven_train))
-
-# Load the configuration from the JSON file
-config_path = 'configs/MLPs/highAndLowLevels/128-64-32-16.json'
-with open(config_path, 'r') as config_file:
-    config = json.load(config_file)
 
 # Extract settings from the config
 features_to_use = config['features_to_use']
@@ -160,8 +168,8 @@ for epoch in range(epochs):
     num_batches = 0
     for step, (x_batch_train, y_batch_train, w_batch_train) in enumerate(train_dataset):
 
-        train_accuracy_metric.reset_states()
-        val_accuracy_metric.reset_states()
+        train_accuracy_metric.reset_state()
+        val_accuracy_metric.reset_state()
 
         with tf.GradientTape() as tape:
             y_pred_train = model(x_batch_train, training=True)

@@ -11,13 +11,27 @@ from kan import KAN
 import sys
 import glob
 sys.path.append("./..")
-from modules import plotter, KAN_plotter
+from modules import plotter, KAN_plotter, KAN_trainer
 from sklearn.utils import shuffle
 import pickle
 from hist import Hist
 plt.style.use([hep.style.ROOT])
 import json
 import shutil
+import argparse
+
+
+# Set up the argument parser
+parser = argparse.ArgumentParser(description='Train KAN models with specified configuration.')
+parser.add_argument('--config', type=str, required=True, help='Path to the configuration file.')
+
+# Parse the arguments
+args = parser.parse_args()
+
+# Load the configuration file
+config_path = args.config
+with open(config_path, 'r') as config_file:
+    config = json.load(config_file)
 
 # Directory where the datasets are stored
 input_dir = "./ML_datasets"
@@ -25,17 +39,16 @@ input_dir = "./ML_datasets"
 # Read datasets
 stop = 100_000
 stop_val = 33_000
-df_ttHCPEven_train = pd.read_csv(os.path.join(input_dir, 'ttHCPEven_train.csv'), nrows=stop)
-df_ttHCPEven_val = pd.read_csv(os.path.join(input_dir, 'ttHCPEven_val.csv'), nrows=int(stop_val))
-df_tHqCPEven_train = pd.read_csv(os.path.join(input_dir, 'tHqCPEven_train.csv'), nrows=stop)
-df_tHqCPEven_val = pd.read_csv(os.path.join(input_dir, 'tHqCPEven_val.csv'), nrows=int(stop_val))
+df_ttH_train = pd.read_csv(os.path.join(input_dir, 'ttHCPEven_train.csv'), nrows=stop)
+df_ttH_val = pd.read_csv(os.path.join(input_dir, 'ttHCPEven_val.csv'), nrows=int(stop_val))
+df_tHq_train = pd.read_csv(os.path.join(input_dir, 'tHqCPEven_train.csv'), nrows=stop)
+df_tHq_val = pd.read_csv(os.path.join(input_dir, 'tHqCPEven_val.csv'), nrows=int(stop_val))
 
-train_data = pd.concat([df_ttHCPEven_train, df_tHqCPEven_train])
-val_data = pd.concat([df_ttHCPEven_val, df_tHqCPEven_val])
+train_data = pd.concat([df_ttH_train, df_tHq_train])
+val_data = pd.concat([df_ttH_val, df_tHq_val])
 # Labels: 0 for ttHCPEven, 1 for tHqCPEven
-train_labels = np.concatenate([np.zeros(len(df_ttHCPEven_train)), np.ones(len(df_tHqCPEven_train))])
-val_labels = np.concatenate([np.zeros(len(df_ttHCPEven_val)), np.ones(len(df_tHqCPEven_val))])
-
+train_labels = np.concatenate([np.zeros(len(df_ttH_train)), np.ones(len(df_tHq_train))])
+val_labels = np.concatenate([np.zeros(len(df_ttH_val)), np.ones(len(df_tHq_val))])
 
 for col in ["phoLeadPt", "phoSubleadPt", 'met', 'leptonPt', 'topMt', "ptH", 'bJetPt', 'jetLeadPt']:
     train_data[col] = np.log(1 + train_data[col].values)
@@ -47,11 +60,10 @@ val_data, val_labels = shuffle(val_data, val_labels, random_state=0)
 train_weights = train_data.pop("weights")
 val_weights = val_data.pop("weights")
 
-
-# Load the configuration from the JSON file
-config_path = 'configs/KANs/highAndLowLevels/22-44-1.json'
-with open(config_path, 'r') as config_file:
-    config = json.load(config_file)
+# # Load the configuration from the JSON file
+# config_path = 'configs/KANs/highAndLowLevels/22-1-testsOnly.json'
+# with open(config_path, 'r') as config_file:
+#     config = json.load(config_file)
 
 # Extract settings from the config
 features_to_use = config['features_to_use']
@@ -65,7 +77,7 @@ lamb = config["lamb"]
 grid = config["grid"]
 k = config["k"]
 opt = config["optimizer"]
-
+update_grid = config["update_grid"].lower() == "true"
 
 # Ensure the output directory exists
 os.makedirs(output_dir, exist_ok=True)
@@ -89,38 +101,12 @@ with open(features_file, 'w') as f:
     for feature in features_to_use:
         f.write(f"{feature}\n")
 
+print("INFO: training with features", features_to_use)
 train_data = train_data[features_to_use]
 val_data = val_data[features_to_use]
 
-short_names = {
-'ptH': 'ptH', 
-'yH': 'yH',
-'nJets': 'nJ',
-'nLeptons': "nL",
-'nJetsCentral': "nJC",
-'nBjetsCentral': "nBJ",
-'nJetsForward': "nJF",
-'met': "MET",
-'met_phi': "PhiMET",
-'leptonPt': "pTL",
-'topMt': "mTt",
-'delta_eta_b_j': "deBJ",
-'rapiditySumJH': "yH+J",
-'rapidityDiffJH': "dyHJ",
-'DeltaY_Hb': "dyHb",
-'DeltaY_Hl': "dyHL",
-"jetLeadPt": "pTJ",
-"jetLeadEta": "etaJ",
-"jetLeadPhi": "phiJ",
-"bJetPt": "pTB",
-"bJetEta": "etaB",
-"bJetPhi": "phiB",
-"leptonPt": "pTL",
-"leptonEta": "etaL",
-"leptonPhi": "phiL",
-}
+short_names = plotter.tex_feature_names
 features_to_use = [short_names[f] if f in short_names.keys() else f for f in features_to_use]
-print("INFO: training with features", features_to_use)
 
 # Apply standard scaling
 scaler = MinMaxScaler()
@@ -155,47 +141,28 @@ model = KAN(width=num_nodes,
 
 # Save the model
 continueTraining = False
-if continueTraining:
-    modelSaveName = "modelGridExt.pt"
-    model_filename = os.path.join(output_dir, 'model.pt')
-    model.load_state_dict(torch.load(model_filename))
-
-    model = KAN(width=[12,3,3,3,1], grid=50, k=3).initialize_from_another_model(model, dataset['train_input'])
-    # model.remove_edge(0,2,0)
-    # model.remove_edge(0,5,0)
-    # model.remove_edge(0,5,1)
-    # model(dataset["train_input"])
-    # for i in range(2):
-    #     print("Trying to suggest ", i)
-    #     try:
-    #         model.suggest_symbolic(1,i,0)
-    #     except:
-    #         print("failed suggesting symbolic")
-    # model.fix_symbolic(1,1,0,'x')
-
-if not continueTraining:
-    modelSaveName = 'model.pt' 
-
-    # model.prune()
+modelSaveName = 'model.pt' 
 
 # Define custom BCE loss functions for training and testing
 def BCE_with_sigmoid(predictions, targets):
-    # Apply sigmoid to normalize the output
     sigmoid_predictions = torch.sigmoid(predictions)
-    # Compute binary cross-entropy loss
     loss = F.binary_cross_entropy(sigmoid_predictions, targets)
-    print(loss)
     return loss
 
 def train_acc():
-    return torch.mean(   ((torch.sigmoid(model(dataset['train_input'])) >= 0.5).float() == dataset['train_label']).float()   )
+    return torch.mean(
+        ((torch.sigmoid(model(dataset['train_input'])) >= 0.5).float() == dataset['train_label']).float()
+    )
 
 def test_acc():
-    return torch.mean(   ((torch.sigmoid(model(dataset['test_input'])) >= 0.5).float() == dataset['test_label']).float()   )
+    return torch.mean(
+        ((torch.sigmoid(model(dataset['test_input'])) >= 0.5).float() == dataset['test_label']).float()
+    )
 
 model = model.speed()
 
-results = model.fit(
+results = KAN_trainer.fit_with_early_stopping_batch(
+    model,
     dataset,
     opt=opt,
     lr=LR,
@@ -204,7 +171,9 @@ results = model.fit(
     metrics=(train_acc, test_acc),
     loss_fn=BCE_with_sigmoid,
     lamb=lamb,
-    # update_grid=False
+    update_grid=update_grid,
+    patience=patience,
+    save_path=os.path.join(output_dir, modelSaveName)
 )
 
 print(results)
@@ -213,8 +182,8 @@ print(results)
 #     model.act_fun[0].grid[0].data
 # )
 
-model_filename = os.path.join(output_dir, modelSaveName)
-torch.save(model.state_dict(), model_filename)
+# model_filename = os.path.join(output_dir, modelSaveName)
+# torch.save(model.state_dict(), model_filename)
 
 
 # Save training history

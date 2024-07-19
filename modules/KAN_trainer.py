@@ -11,7 +11,7 @@ def fit_with_early_stopping_batch(model, dataset, opt="LBFGS", steps=100, log=1,
 
     if lamb > 0. and not model.save_plot_data:
         print('setting lamb=0. If you want to set lamb > 0, set model.save_plot_data=True')
-    
+
     def reg(acts_scale):
         reg_ = 0.
         for i in range(len(acts_scale)):
@@ -84,50 +84,21 @@ def fit_with_early_stopping_batch(model, dataset, opt="LBFGS", steps=100, log=1,
     if save_fig:
         if not os.path.exists(img_folder):
             os.makedirs(img_folder)
-
-    # for epoch in pbar:
-    #     train_id = np.random.choice(dataset['train_input'].shape[0], batch_size, replace=False)
-    #     test_id = np.random.choice(dataset['test_input'].shape[0], batch_size_test, replace=False)
-
-    #     if epoch % grid_update_freq == 0 and epoch < stop_grid_update_step and update_grid and epoch >= start_grid_update_step:
-    #         model.update_grid_from_samples(dataset['train_input'][train_id].to(device))
-
-    #     if opt == "LBFGS":
-    #         optimizer.step(closure)
-
-    #     if opt == "Adam":
-    #         pred = model.forward(dataset['train_input'][train_id].to(device), singularity_avoiding=singularity_avoiding, y_th=y_th)
-    #         train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
-    #         if model.save_plot_data:
-    #             if reg_metric == 'act':
-    #                 reg_ = reg(model.acts_scale_spline)
-    #             if reg_metric == 'fa':
-    #                 model.attribute()
-    #                 reg_ = reg(model.edge_actscale)
-    #         else:
-    #             reg_ = torch.tensor(0.)
-    #         loss = train_loss + lamb * reg_
-    #         optimizer.zero_grad()
-    #         loss.backward()
-    #         optimizer.step()
-
-    #     test_loss = loss_fn_eval(model.forward(dataset['test_input'][test_id].to(device)), dataset['test_label'][test_id].to(device))
-
-    #     if epoch % log == 0:
-    #         pbar.set_description(f"train loss: {torch.sqrt(train_loss).cpu().detach().numpy():.2e} | test loss: {torch.sqrt(test_loss).cpu().detach().numpy():.2e} | reg: {reg_.cpu().detach().numpy():.2e}")
     for epoch in pbar:
         permutation = torch.randperm(dataset['train_input'].size()[0])
         train_loss_epoch = []
+
+        if epoch % grid_update_freq == 0 and epoch < stop_grid_update_step and update_grid and epoch >= start_grid_update_step:
+            print("INFO: updating grid...")
+            model.update_grid_from_samples(dataset['train_input'].to(device))
+
         for i in range(0, dataset['train_input'].size()[0], batch_size):
             batch_indices = permutation[i:i+batch_size]
             train_id = batch_indices
-            
-            if epoch % grid_update_freq == 0 and epoch < stop_grid_update_step and update_grid and epoch >= start_grid_update_step:
-                model.update_grid_from_samples(dataset['train_input'][train_id].to(device))
 
             if opt == "LBFGS":
                 optimizer.step(closure)
-                train_loss_epoch = train_loss
+                train_loss_epoch = train_loss.clone().detach()
 
             if opt == "Adam":
                 pred = model.forward(dataset['train_input'][train_id].to(device), singularity_avoiding=singularity_avoiding, y_th=y_th)
@@ -150,8 +121,8 @@ def fit_with_early_stopping_batch(model, dataset, opt="LBFGS", steps=100, log=1,
         train_loss_epoch = torch.tensor(train_loss_epoch)
 
         if epoch % log == 0:
-            pbar.set_description(f"train loss: {torch.sqrt(torch.mean(train_loss_epoch)).cpu().detach().numpy():.2e} | test loss: {torch.sqrt(test_loss).cpu().detach().numpy():.2e} | reg: {reg_.cpu().detach().numpy():.2e}")
-
+            # pbar.set_description(f"train loss: {torch.sqrt(torch.mean(train_loss_epoch)).cpu().detach().numpy():.2e} | test loss: {torch.sqrt(test_loss).cpu().detach().numpy():.2e} | reg: {reg_.cpu().detach().numpy():.2e}")
+            pbar.set_description(f"train loss: {torch.mean(train_loss_epoch).cpu().detach().numpy():.2e} | test loss: {test_loss.cpu().detach().numpy():.2e} | reg: {reg_.cpu().detach().numpy():.2e}")
         if metrics:
             for metric in metrics:
                 results[metric.__name__].append(metric().item())
