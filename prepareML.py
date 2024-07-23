@@ -161,8 +161,8 @@ for df, name in zip([dfTtHCPEven, dfTHqCPEven], ["ttHCPEven", "tHqCPEven"]):
     val_df, test_df = train_test_split(temp_df, test_size=0.75, random_state=42)
 
     # Save the DataFrames to CSV files
-    train_df.to_csv(os.path.join(output_dir, f'{name}_train.csv'), index=False)
-    val_df.to_csv(os.path.join(output_dir, f'{name}_val.csv'), index=False)
-    test_df.to_csv(os.path.join(output_dir, f'{name}_test.csv'), index=False)
+    # train_df.to_csv(os.path.join(output_dir, f'{name}_train.csv'), index=False)
+    # val_df.to_csv(os.path.join(output_dir, f'{name}_val.csv'), index=False)
+    # test_df.to_csv(os.path.join(output_dir, f'{name}_test.csv'), index=False)
 
     print(f"{name} split into {len(train_df)} train, {len(val_df)} validation, and {len(test_df)} test samples")
