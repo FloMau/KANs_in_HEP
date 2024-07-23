@@ -268,7 +268,6 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                 if symbolic_mask == 0. and numeric_mask == 0.:
                     color = "white"
                     alpha_mask = 0
-                    
 
                 if tick == True:
                     ax.tick_params(axis="y", direction="in", pad=-22, labelsize=50)

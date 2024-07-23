@@ -34,7 +34,7 @@ def event_selection(events, channel="lep"):
 
     genDressedLeptons = genDressedLeptons[
         ((np.abs(genDressedLeptons.pdgId) == 11) | (np.abs(genDressedLeptons.pdgId) == 13)) &
-        (np.abs(genDressedLeptons.eta < 2.4)) & (genDressedLeptons.pt > 10)
+        (np.abs(genDressedLeptons.eta) < 2.4) & (genDressedLeptons.pt > 10)
     ]
     events["GenDressedLepton"] = genDressedLeptons
 
