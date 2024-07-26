@@ -67,8 +67,8 @@ def event_selection(events, channel="lep"):
     jets = events.Jet
     events["Jet"] = jets[
         (jets.pt > 25) & (np.abs(jets.eta) < 4.7) 
-        & ak.all(jets.metric_table(events.Photon, metric=lambda a, b: a.delta_r(b)) > 0.4, axis=-1)
-        & ak.all(jets.metric_table(events.Lepton, metric=lambda a, b: a.delta_r(b)) > 0.4, axis=-1)
+        & ak.all(jets.metric_table(events.Photon, metric=lambda a, b: a.delta_r(b)) > 0.5, axis=-1)
+        & ak.all(jets.metric_table(events.Lepton, metric=lambda a, b: a.delta_r(b)) > 0.5, axis=-1)
     ]
 
     # print("pT lead eff:", 
@@ -164,14 +164,12 @@ def main(path, hists, entryStop=None):
     events = event_selection(events)
     print("\tINFO: number of events before & after selection:", nEvents, len(events))
 
-    # status: https://pythia.org/latest-manual/ParticleProperties.html
     jets = ak.zip({
         "pt": events.Jet.pt,
         "eta": events.Jet.eta,
         "phi": events.Jet.phi,
         "mass": events.Jet.mass,
         "BTag": events.Jet.BTag
-        # "partonFlavour": events.Jet.partonFlavour
     }, with_name="Momentum4D")
 
     phoLead = ak.zip({
@@ -198,7 +196,7 @@ def main(path, hists, entryStop=None):
         # "pdgId": events.Lepton.pdgId
     }, with_name="Momentum4D")
 
-    bJets = jets[jets.BTag == 1]
+    bJets = jets[(jets.BTag == 1) & (np.abs(jets.eta) < 2.5)]
 
     weights = events.Weight.Weight[:,0]
 
@@ -250,7 +248,7 @@ def main(path, hists, entryStop=None):
 
     ##### get delta_y (leading b-jet, leading jet)
     bJetLead = ak.firsts(
-        jets[(jets.BTag == 1) & (np.abs(jets.eta) < 2.5)]
+        bJets
     )
 
     # identify by requiring same pt, might be an issue if two jets in an event have same pt...
