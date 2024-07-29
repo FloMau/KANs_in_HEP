@@ -225,20 +225,16 @@ def plot_custom(model, folder="./figures", beta=3, mask=False, mode="supervised"
 def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None, varscale=1.0):
     
     global Symbol
-    
-    # if not self.save_act:
-    #     print('cannot plot since data are not saved. Set save_act=True first.')
-    
+
     # forward to obtain activations
     if model.acts == None:
         if model.cache_data == None:
             raise Exception('model hasn\'t seen any data yet.')
         model.forward(model.cache_data)
-        
+
     if metric == 'backward':
         model.attribute()
-        
-    
+
     if not os.path.exists(folder):
         os.makedirs(folder)
     # matplotlib.use('Agg')
@@ -313,9 +309,9 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
         scores = model.edge_scores
     else:
         raise Exception(f'metric = \'{metric}\' not recognized')
-    
+
     alpha = [score2alpha(score.cpu().detach().numpy()) for score in scores]
-        
+
     # draw skeleton
     width = np.array(model.width)
     width_in = np.array(model.width_in)
@@ -349,7 +345,7 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
         # scatters
         for i in range(n):
             plt.scatter(1 / (2 * n) + i / n, l * (y0+z0), s=min_spacing ** 2 * 10000 * scale ** 2, color='black')
-            
+
         # plot connections (input to pre-mult)
         for i in range(n):
             if l < neuron_depth - 1:
@@ -358,21 +354,6 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                 for j in range(n_next):
                     id_ = i * n_next + j
 
-                    symbol_mask = model.symbolic_fun[l].mask[j][i]
-                    numerical_mask = model.act_fun[l].mask[i][j]
-                    if symbol_mask == 1. and numerical_mask > 0.:
-                        color = 'purple'
-                        alpha_mask = 1.
-                    if symbol_mask == 1. and numerical_mask == 0.:
-                        color = "red"
-                        alpha_mask = 1.
-                    if symbol_mask == 0. and numerical_mask == 1.:
-                        color = "black"
-                        alpha_mask = 1.
-                    if symbol_mask == 0. and numerical_mask == 0.:
-                        color = "white"
-                        alpha_mask = 0.
-                        
                     color="black"
                     if mask == True:
                         plt.plot([1 / (2 * n) + i / n, 1 / (2 * N) + id_ / N], [l * (y0+z0), l * (y0+z0) + y0/2 - y1], color=color, lw=2 * scale, alpha=alpha[l][j][i] * model.mask[l][i].item() * model.mask[l + 1][j].item())
@@ -380,8 +361,7 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                     else:
                         plt.plot([1 / (2 * n) + i / n, 1 / (2 * N) + id_ / N], [l * (y0+z0), l * (y0+z0) + y0/2 - y1], color=color, lw=2 * scale, alpha=alpha[l][j][i] * alpha_mask)
                         plt.plot([1 / (2 * N) + id_ / N, 1 / (2 * n_next) + j / n_next], [l * (y0+z0) + y0/2 + y1, l * (y0+z0)+y0], color=color, lw=2 * scale, alpha=alpha[l][j][i] * alpha_mask)
-                        
-                        
+
         # plot connections (pre-mult to post-mult, post-mult = next-layer input)
         if l < neuron_depth - 1:
             n_in = width_out[l+1]
@@ -409,14 +389,10 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                     #j = (i-width[l+1][0])//model.mult_arity + width[l+1][0]
                 plt.plot([1 / (2 * n_in) + i / n_in, 1 / (2 * n_out) + j / n_out], [l * (y0+z0) + y0, (l+1) * (y0+z0)], color='black', lw=2 * scale)
 
-
         plt.xlim(0, 1)
         plt.ylim(-0.1 * (y0+z0), (neuron_depth - 1 + 0.1) * (y0+z0))
 
-
     plt.axis('off')
-
-
 
     for l in range(neuron_depth - 1):
         # plot splines
@@ -448,28 +424,12 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                 # print("y", model.spline_postacts[l][:, j, i][rank].cpu().detach().numpy())
                 # exit()
                 newax.plot(model.acts[l][:, i][rank].cpu().detach().numpy(), model.spline_postacts[l][:, j, i][rank].cpu().detach().numpy(), color="tab:red", lw=1)
-                newax.tick_params(axis="both", which="both", direction="in", pad=0, labelsize=1, length=1, width=0.1, grid_linewidth=0.1)
-                newax.spines['top'].set_visible(False)
-                newax.spines['right'].set_visible(False)
-                newax.spines['left'].set_visible(False)
-                newax.spines['bottom'].set_visible(False)
-                newax.set_facecolor('none')
-                newax.patch.set_alpha(0)
+                newax.tick_params(axis="both", which="both", direction="in", pad=0, labelsize=2, length=1, width=0.1, grid_linewidth=0.1)
+                newax.tick_params(axis="both", which="minor", direction="in", pad=0, labelsize=1, length=0, width=0, grid_linewidth=0.1)
 
                 for spine in newax.spines.values():
                     spine.set_linewidth(0.1)  # Set a very thin width
                     spine.set_color('black')  # Ensure the color is black
-
-                # Remove the face color and patch
-                newax.set_facecolor('none')
-                newax.patch.set_alpha(0)
-
-                # Keep the axis ticks visible
-                newax.get_xaxis().set_visible(True)
-                newax.get_yaxis().set_visible(True)
-
-                # newax.tick_params(axis="x", direction="in", pad=0, labelsize=1)
-                # newax.axis('off')
 
         # plot sum symbols
         # N = n = width_out[l+1]
@@ -485,31 +445,30 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
         #     newax.imshow(im)
         #     newax.axis('off')
 
-        # plot mult symbols
-        # N = n = width_in[l+1]
-        # n_sum = width[l+1][0]
-        # n_mult = width[l+1][1]
-        # for j in range(n_mult):
-        #     id_ = j + n_sum
-        #     path = os.path.dirname(os.path.abspath(__file__)) + "/assets/img/mult_symbol.png"
-        #     im = plt.imread(path)
-        #     left = DC_to_NFC([1 / (2 * N) + id_ / N - y2, 0])[0]
-        #     right = DC_to_NFC([1 / (2 * N) + id_ / N + y2, 0])[0]
-        #     bottom = DC_to_NFC([0, (l+1) * (y0+z0) - y2])[1]
-        #     up = DC_to_NFC([0, (l+1) * (y0+z0) + y2])[1]
-        #     newax = fig.add_axes([left, bottom, right - left, up - bottom])
-        #     newax.imshow(im)
-        #     newax.axis('off')
-
     if in_vars != None:
         n = model.width_in[0]
+        # edge scores corresponds to l1 from edge used in MultKAN's fit method...
+        norms = model.edge_scores[0].cpu().detach().numpy()
+        norms = np.mean(norms, axis=0)
+        print_norm_explicitly = True
+
         for i in range(n):
             if isinstance(in_vars[i], sympy.Expr):
                 plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, f'${latex(in_vars[i])}$', fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
             else:
-                plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, in_vars[i], fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
-            
-            
+                plt.gcf().get_axes()[0].text(
+                    1 / (2 * (n)) + i / (n), 
+                    -0.03, 
+                    in_vars[i], 
+                    fontsize=40 * scale * varscale, 
+                    horizontalalignment='center', 
+                    verticalalignment='center',
+                    rotation=30,  # Rotate the text by 30 degrees
+                    rotation_mode='anchor'  # Anchor the rotation to keep it at the same x location
+                )
+                if print_norm_explicitly:
+                    # this works so far only for the one layer KAN where one input corresponds to one spline
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n)-0.01, 0.07, f"{norms[i]:.2f}", fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center', rotation=90, rotation_mode="anchor")
 
     if out_vars != None:
         n = model.width_in[-1]
@@ -517,7 +476,7 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
             if isinstance(out_vars[i], sympy.Expr):
                 plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(model.width) - 1) + 0.15, f'${latex(out_vars[i])}$', fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
             else:
-                plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(model.width) - 1) + 0.15, out_vars[i], fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
+                plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(model.width) - 1) + 0.03, out_vars[i], fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
 
     if title != None:
         plt.gcf().get_axes()[0].text(0.5, (y0+z0) * (len(model.width) - 1) + 0.3, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')

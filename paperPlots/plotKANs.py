@@ -20,7 +20,8 @@ import json
 import shutil
 import argparse
 
-model_dir = "../TrainingOutputs/KANs18Jul2024/22-1-LBFGS/"
+model_dir = "../TrainingOutputs/KANs26Jul2024/22-1-Adam/"
+model2_dir = "../TrainingOutputs/KANs26Jul2024/22-3-1-Adam/"
 output_dir = "./KAN_plots/"
 
 # Load the configuration file
@@ -43,14 +44,7 @@ train_labels = np.concatenate([np.zeros(len(df_ttH_train)), np.ones(len(df_tHq_t
 for col in ["phoLeadPt", "phoSubleadPt", 'met', 'leptonPt', 'topMt', "ptH", 'bJetPt', 'jetLeadPt']:
     train_data[col] = np.log(1 + train_data[col].values)
 
-train_data, train_labels = shuffle(train_data, train_labels, random_state=0)
-
 train_weights = train_data.pop("weights")
-
-# # Load the configuration from the JSON file
-# config_path = 'configs/KANs/highAndLowLevels/22-1-testsOnly.json'
-# with open(config_path, 'r') as config_file:
-#     config = json.load(config_file)
 
 # Extract settings from the config
 features_to_use = config['features_to_use']
@@ -76,17 +70,11 @@ print("Output Directory:", output_dir)
 
 os.makedirs(output_dir, exist_ok=True)
 
-# Save the list to a text file
-features_file = os.path.join(output_dir, "features_to_use.txt")
-with open(features_file, 'w') as f:
-    for feature in features_to_use:
-        f.write(f"{feature}\n")
-
 print("INFO: training with features", features_to_use)
 train_data = train_data[features_to_use]
 
 short_names = plotter.tex_feature_names
-features_labels = [short_names[f] if f in short_names.keys() else f for f in features_to_use]
+feature_labels = [short_names[f] if f in short_names.keys() else f for f in features_to_use]
 
 # Apply standard scaling
 scaler = MinMaxScaler()
@@ -110,16 +98,44 @@ model = KAN(width=num_nodes,
             # grid_eps=0.,
             k=k,
             seed=42)
+
+
 model.load_state_dict(torch.load(model_dir + "model.pt"))
 model(dataset["train_input"])
-# plt.figure(figsize=(10,6))
-# # # model.plot(beta=100, in_vars=features, scale=10) #, out_vars=['y1', "y2"], title = 'My KAN', scale=0.04)
-# KAN_plotter.plot(model, folder=output_dir+"Splines", beta=3, mask=False, metric='backward', scale=1, tick=True, sample=False, in_vars=feature_labels, out_vars=['ttH vs. tH'], title=None, varscale=0.2)
-# # KAN_plotter.plot_custom(model, beta=50, in_vars=features_to_use, folder=output_dir+"Splines/", out_vars=['ttH vs. tH'], title = 'My KAN', scale=10, tick=True, tick_size=100)
-# # # plt.tight_layout()
-# plt.savefig(output_dir + "/KAN_modelFromEvalScript.pdf")
-# plt.close()
 
+# print(model.edge_scores)
+# exit()
+
+plt.figure(figsize=(10,6))
+KAN_plotter.plot(model, folder=output_dir+"Splines", beta=3, mask=False, metric='backward', scale=1, tick=True, sample=False, in_vars=feature_labels, out_vars=['Output'], title=None, varscale=0.22)
+# # KAN_plotter.plot_custom(model, beta=50, in_vars=features_to_use, folder=output_dir+"Splines/", out_vars=['ttH vs. tH'], title = 'My KAN', scale=10, tick=True, tick_size=100)
+# plt.tight_layout()
+plt.savefig(output_dir + "/KAN_22-1.pdf", bbox_inches='tight')
+plt.close()
+
+plot_model2 = True
+if plot_model2:
+    model2 = KAN(width=[22,3,1],
+            grid=grid,
+            # grid_range=(0,1),
+            # grid_eps=0.,
+            k=k,
+            seed=42)
+    
+    model2.load_state_dict(torch.load(model2_dir + "model.pt"))
+    model2(dataset["train_input"])
+
+    # print(model2.edge_scores)
+    # exit()
+
+    plt.figure(figsize=(10,6))
+    KAN_plotter.plot(model2, folder=output_dir+"Splines", beta=3, mask=False, metric='backward', scale=1, tick=True, sample=False, in_vars=feature_labels, out_vars=['Output'], title=None, varscale=0.22)
+    # # KAN_plotter.plot_custom(model, beta=50, in_vars=features_to_use, folder=output_dir+"Splines/", out_vars=['ttH vs. tH'], title = 'My KAN', scale=10, tick=True, tick_size=100)
+    # plt.tight_layout()
+    plt.savefig(output_dir + "/KAN_22-3-1.pdf", bbox_inches='tight')
+    plt.close()
+
+exit()
 dataset_ttH = train_data_scaled[train_labels == 0]
 dataset_tHq = train_data_scaled[train_labels == 1]
 weights_ttH = train_weights[train_labels == 0]
