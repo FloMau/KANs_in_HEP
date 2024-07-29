@@ -15,5 +15,5 @@
     "learning_rate": 3e-4,
     "batch_size": 256,
     "num_nodes": [128, 64, 32, 16],
-    "output_dir": "./TrainingOutputs/MLPs18Jul2024/128-64-32-16/"
+    "output_dir": "./TrainingOutputs/MLPs26Jul2024/128-64-32-16/"
 }

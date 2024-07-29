@@ -83,15 +83,32 @@ for idx, feature in enumerate(features_to_use):
     ax.set_xlim(binning[0], binning[-1])
     ax.get_legend().remove()
 
+    # Set the linewidth for all lines in the current subplot
+    # for line in ax.get_lines():
+    #     line.set_linewidth(8)  # Set the desired linewidth here
+    # Adjust linewidth for all plot elements
+    for line in ax.get_lines():
+        line.set_linewidth(4)
+    for patch in ax.patches:
+        patch.set_linewidth(4)
+    for collection in ax.collections:
+        collection.set_linewidth(4)
+
 
 # axes.flatten()[0].set_ylim(ax.get_ylim()[0], ax.get_ylim()[1])  # Replace (0, 1) with your desired ylim
-axes.flatten()[0].set_ylim(axes.flatten()[0].get_ylim()[0], 0.9*axes.flatten()[0].get_ylim()[1]) 
+axes.flatten()[0].set_ylim(axes.flatten()[0].get_ylim()[0], 0.94*axes.flatten()[0].get_ylim()[1]) 
 axes.flatten()[5].set_ylim(axes.flatten()[5].get_ylim()[0], 0.71*axes.flatten()[5].get_ylim()[1]) 
+
+fontsize = 30
+for ax in axes.flatten():
+    ax.xaxis.label.set_size(fontsize-2)  # Set the x-axis label fontsize
+    ax.yaxis.label.set_size(fontsize)  # Set the y-axis label fontsize
+
 
 
 # Create a single shared legend
 fig.tight_layout(rect=[0, 0, 1, 0.95])  # Adjust rect to make space for the legend
-fig.legend(handles, _labels, loc='upper right', ncol=2, fontsize=28) # bbox_to_anchor=(0.5, 1.05)
+fig.legend(handles, _labels, loc='upper right', ncol=2, fontsize=fontsize+2, bbox_to_anchor=(0.925, 1.02))
 # Adjust layout and save
 
 # Adjust layout and save

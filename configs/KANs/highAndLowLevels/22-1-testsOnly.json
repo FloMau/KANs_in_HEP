@@ -1,12 +1,12 @@
 {
     "features_to_use": [
         "ptH", "yH", "phiH",
-        "nJets","nLeptons", "nBjetsCentral",
-        "met", "metPhi",
-        "leptonPt", "leptonEta", "leptonPhi",
-        "topMt",
         "bJetPt", "bJetEta", "bJetPhi",
+        "leptonPt", "leptonEta", "leptonPhi",
+        "met", "metPhi",
         "jetLeadPt", "jetLeadEta", "jetLeadPhi",
+        "nJets","nLeptons", "nBjetsCentral",
+        "topMt",
         "delta_eta_b_j", "rapiditySumJH", "DeltaY_Hb", "DeltaY_Hl"
     ],
     "epochs": 10,

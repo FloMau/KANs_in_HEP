@@ -17,7 +17,7 @@ plt.style.use([hep.style.ROOT])
 def plot_custom(model, folder="./figures", beta=3, mask=False, mode="supervised", scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None, tick_size=20):
     '''
     plot KAN with custom tick size for in_vars
-    
+
     Args:
     -----
         folder : str

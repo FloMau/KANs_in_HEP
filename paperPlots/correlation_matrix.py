@@ -3,12 +3,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import mplhep as hep
-from kan import KAN
 import sys
-import glob
 sys.path.append("./..")
 from modules import plotter
-from hist import Hist
 plt.style.use([hep.style.ROOT])
 
 
@@ -18,6 +15,8 @@ input_dir = "../ML_datasets"
 # Read datasets
 df_ttH = pd.read_csv(os.path.join(input_dir, 'ttHCPEven_train.csv'))
 df_tHq = pd.read_csv(os.path.join(input_dir, 'tHqCPEven_train.csv'))
+
+print(f"{len(df_ttH)=}", f"{len(df_tHq)=}")
 
 df_combined = pd.concat([df_ttH, df_tHq])
 
@@ -32,11 +31,14 @@ features_to_use = [
     "delta_eta_b_j", "rapiditySumJH", "DeltaY_Hb", "DeltaY_Hl"
 ]
 
+# for fea in features_to_use:
+#     print(fea)
+#     print(df_tHq[fea])
+#     print(df_ttH[fea])
+
+
 tex_feature_names = plotter.tex_feature_names
 labels = [tex_feature_names[f] if f in tex_feature_names.keys() else f for f in features_to_use]
-
-
-
 
 df_combined_ttH = df_ttH[features_to_use]
 df_combined_tHq = df_tHq[features_to_use]
@@ -62,13 +64,14 @@ cax = ax.matshow(combined_corr_matrix, cmap='coolwarm')
 
 # Add color bar
 cbar = fig.colorbar(cax)
-cbar.set_label('Correlation coefficient [%]') #, fontsize=14
-
+cbar.set_label('Correlation coefficient [%]', fontsize=26)
+# cax.set_clim(vmin=-80, vmax=80)
+cax.set_clim(vmin=-100, vmax=100)
 # Set axis labels
 ax.set_xticks(np.arange(len(combined_corr_matrix.columns)))
 ax.set_yticks(np.arange(len(combined_corr_matrix.columns)))
-ax.set_xticklabels(labels, rotation=90)
-ax.set_yticklabels(labels)
+ax.set_xticklabels(labels, rotation=90, fontsize=20)
+ax.set_yticklabels(labels, fontsize=20)
 
 # Rotate the x tick labels
 plt.setp(ax.get_xticklabels(), rotation=60, ha="left", rotation_mode="anchor")
@@ -92,5 +95,7 @@ ax.text(15, 6.5, r"$\boldsymbol{tH}$", color="black",fontsize=34)
 ax.text(6.5, 15, r"$\boldsymbol{t\bar\boldsymbol{t} H}$", color="black",fontsize=34)
 # Adjust layout and save
 fig.tight_layout()
-fig.savefig("./correlationMatrix.pdf")
+output_dir = "./correlationMatrix/"
+os.makedirs(output_dir, exist_ok=True)
+fig.savefig(output_dir + "./correlationMatrix.pdf")
 plt.close()

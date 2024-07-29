@@ -1,12 +1,12 @@
 {
     "features_to_use": [
         "ptH", "yH", "phiH",
-        "nJets","nLeptons", "nBjetsCentral",
-        "met", "metPhi",
-        "leptonPt", "leptonEta", "leptonPhi",
-        "topMt",
         "bJetPt", "bJetEta", "bJetPhi",
+        "leptonPt", "leptonEta", "leptonPhi",
+        "met", "metPhi",
         "jetLeadPt", "jetLeadEta", "jetLeadPhi",
+        "nJets","nLeptons", "nBjetsCentral",
+        "topMt",
         "delta_eta_b_j", "rapiditySumJH", "DeltaY_Hb", "DeltaY_Hl"
     ],
     "epochs": 1000,
@@ -18,6 +18,6 @@
     "lamb": 0,
     "grid": 5,
     "k": 3,
-    "output_dir": "./TrainingOutputs/KANs18Jul2024/22-1-Adam/",
+    "output_dir": "./TrainingOutputs/KANs26Jul2024/22-1-Adam/",
     "update_grid": "False"
 }

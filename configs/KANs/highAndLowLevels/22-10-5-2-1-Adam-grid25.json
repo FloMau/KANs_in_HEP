@@ -1,0 +1,23 @@
+{
+    "features_to_use": [
+        "ptH", "yH", "phiH",
+        "bJetPt", "bJetEta", "bJetPhi",
+        "leptonPt", "leptonEta", "leptonPhi",
+        "met", "metPhi",
+        "jetLeadPt", "jetLeadEta", "jetLeadPhi",
+        "nJets","nLeptons", "nBjetsCentral",
+        "topMt",
+        "delta_eta_b_j", "rapiditySumJH", "DeltaY_Hb", "DeltaY_Hl"
+    ],
+    "epochs": 1000,
+    "patience": 25,
+    "optimizer": "Adam",
+    "learning_rate": 3e-4,
+    "batch_size": 256,
+    "num_nodes": [22, 10, 5, 2, 1],
+    "lamb": 0,
+    "grid": 25,
+    "k": 3,
+    "output_dir": "./TrainingOutputs/KANs26Jul2024/22-10-5-2-1_Adam-grid25/",
+    "update_grid": "True"
+}

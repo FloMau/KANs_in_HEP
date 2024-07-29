@@ -1,0 +1,19 @@
+{
+    "features_to_use": [
+        "ptH", "yH", "phiH",
+        "nJets","nLeptons", "nBjetsCentral",
+        "met", "metPhi",
+        "leptonPt", "leptonEta", "leptonPhi",
+        "topMt",
+        "bJetPt", "bJetEta", "bJetPhi",
+        "jetLeadPt", "jetLeadEta", "jetLeadPhi",
+        "delta_eta_b_j", "rapiditySumJH", "DeltaY_Hb",
+        "DeltaY_Hl"
+    ],
+    "epochs": 1000,
+    "patience": 25,
+    "learning_rate": 3e-4,
+    "batch_size": 256,
+    "num_nodes": [256, 128, 64, 32, 16],
+    "output_dir": "./TrainingOutputs/MLPs26Jul2024/256-128-64-32-16/"
+}

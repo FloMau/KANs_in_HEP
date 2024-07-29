@@ -20,13 +20,13 @@ sys.path.append("./..")
 from modules import plotter
 
 model_dirs = {
-    "KAN 22-1": "../TrainingOutputs/KANs18Jul2024/22-1-LBFGS/",
-    # "KAN 22-1 Adam": "../TrainingOutputs/KANs18Jul2024/22-1-Adam/",
-    "KAN 22-44-1": "../TrainingOutputs/KANs18Jul2024/22-44-1-LBFGS/",
-    # "KAN 22-44-1 Adam": "../TrainingOutputs/KANs18Jul2024/22-44-1-Adam/",
-    "KAN 22-10-5-2-1": "../TrainingOutputs/KANs18Jul2024/22-10-5-2-1-LBFGS/",
-    # "KAN 22-10-5-2-1 Adam": "../TrainingOutputs/KANs18Jul2024/22-10-5-2-1_Adam/",
-    # "KAN 22-1 g=50": "../TrainingOutputs/KANs18Jul2024/22-1-LBFGS-grid50/",
+    # "KAN 22-1": "../TrainingOutputs/KANs26Jul2024/22-1-LBFGS/",
+    "KAN 22-1": "../TrainingOutputs/KANs26Jul2024/22-1-Adam/",
+    # "KAN 22-44-1": "../TrainingOutputs/KANs26Jul2024/22-44-1-LBFGS/",
+    "KAN 22-44-1": "../TrainingOutputs/KANs26Jul2024/22-44-1-Adam/",
+    # "KAN 22-10-5-2-1": "../TrainingOutputs/KANs26Jul2024/22-10-5-2-1-LBFGS/",
+    "KAN 22-10-5-2-1 Adam": "../TrainingOutputs/KANs26Jul2024/22-10-5-2-1-Adam/",
+    # "KAN 22-1 g=50": "../TrainingOutputs/KANs26Jul2024/22-1-LBFGS-grid50/",
 }
 
 
@@ -122,8 +122,19 @@ for idx, model_label in enumerate(model_dirs.keys()):
     ax.set_xlim(binning[0], binning[-1])
     ax.get_legend().remove()
     # ax.set_xlim(-0.02, 1.02)
+    for line in ax.get_lines():
+        line.set_linewidth(4)
+    for patch in ax.patches:
+        patch.set_linewidth(4)
+    for collection in ax.collections:
+        collection.set_linewidth(4)
 
 ax.set_ylim(0.001, ax.get_ylim()[1])
+
+fontsize = 30
+for ax in axes.flatten():
+    ax.xaxis.label.set_size(fontsize)  # Set the x-axis label fontsize
+    ax.yaxis.label.set_size(fontsize)  # Set the y-axis label fontsize
 
 
 # axes.flatten()[0].set_ylim(ax.get_ylim()[0], ax.get_ylim()[1])  # Replace (0, 1) with your desired ylim
@@ -132,10 +143,10 @@ ax.set_ylim(0.001, ax.get_ylim()[1])
 
 titles = ['KAN 22-1', 'KAN 22-44-1', 'KAN 22-10-5-2-1']
 for i, ax in enumerate(axes):
-    ax.set_title(titles[i], fontsize=28)
+    ax.set_title(titles[i], fontsize=fontsize+2)
 # Create a single shared legend
 fig.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust rect to make space for the legend
-fig.legend(handles, _labels, loc='upper right', ncol=2, fontsize=28, bbox_to_anchor=(0.97, 1.05))
+fig.legend(handles, _labels, loc='upper right', ncol=2, fontsize=fontsize+2, bbox_to_anchor=(0.97, 1.05))
 # Adjust layout and save
 
 # Adjust layout and save

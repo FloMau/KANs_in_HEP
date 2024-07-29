@@ -17,7 +17,7 @@ import os
 import argparse
 
 # Set up the argument parser
-parser = argparse.ArgumentParser(description='Train KAN models with specified configuration.')
+parser = argparse.ArgumentParser(description='Train MLP models with specified configuration.')
 parser.add_argument('--config', type=str, required=True, help='Path to the configuration file.')
 
 # Parse the arguments

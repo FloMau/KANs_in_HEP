@@ -20,32 +20,20 @@ plt.style.use([hep.style.CMS])
 sys.path.append("./..")
 from modules import plotter
 
-# Dictionary with paths to separate trainings
-# model_dirs = {
-#     "MLP 128-64-32-16": "./TrainingOutputs/MLP/LowAndHighLevels/128-64-32-16/",
-#     "MLP 1x32": "./TrainingOutputs/MLP/LowAndHighLevels/32/",
-#     "MLP 1x8": "./TrainingOutputs/MLP/LowAndHighLevels/8/",
-# #     "KAN 25-10-5-1": "./KAN_trainingsLowLevels/AllFeatures_25_10_5_1",
-#     "KAN 22-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-1-LR1e-3/",
-#     "KAN 22-44-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-44-1/",
-#     "KAN 22-10-5-2-1": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-10-5-2-1/",
-#     "KAN 22-1 g=50": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-1-grid50/",
-#     "KAN 22-10-5-2-1 Adam": "./TrainingOutputs/KAN/LBFGS/LowAndHighLevels/22-10-5-2-1_Adam/",
-# }
 
 model_dirs = {
-    # "MLP 128-64-32-16": "./TrainingOutputs/MLPs18Jul2024/128-64-32-16/",
-    "MLP 64-32-16": "./TrainingOutputs/MLPs18Jul2024/64-32-16/",
-    "MLP 1x32": "./TrainingOutputs/MLPs18Jul2024/32/",
-    "MLP 1x8": "./TrainingOutputs/MLPs18Jul2024/8/",
+    "MLP 128-64-32-16": "./TrainingOutputs/MLPs26Jul2024/128-64-32-16/",
+    "MLP 64-32-16": "./TrainingOutputs/MLPs26Jul2024/64-32-16/",
+    "MLP 1x32": "./TrainingOutputs/MLPs26Jul2024/32/",
+    "MLP 1x8": "./TrainingOutputs/MLPs26Jul2024/8/",
 #     "KAN 25-10-5-1": "./KAN_trainingsLowLevels/AllFeatures_25_10_5_1",
-    "KAN 22-1": "./TrainingOutputs/KANs18Jul2024/22-1-LBFGS/",
-    "KAN 22-1 Adam": "./TrainingOutputs/KANs18Jul2024/22-1-Adam/",
-    "KAN 22-44-1": "./TrainingOutputs/KANs18Jul2024/22-44-1-LBFGS/",
-    "KAN 22-44-1 Adam": "./TrainingOutputs/KANs18Jul2024/22-44-1-Adam/",
-    "KAN 22-10-5-2-1": "./TrainingOutputs/KANs18Jul2024/22-10-5-2-1-LBFGS/",
-    "KAN 22-10-5-2-1 Adam": "./TrainingOutputs/KANs18Jul2024/22-10-5-2-1_Adam/",
-    "KAN 22-1 g=50": "./TrainingOutputs/KANs18Jul2024/22-1-LBFGS-grid50/",
+    "KAN 22-1": "./TrainingOutputs/KANs26Jul2024/22-1-LBFGS/",
+    "KAN 22-1 Adam": "./TrainingOutputs/KANs26Jul2024/22-1-Adam/",
+    "KAN 22-44-1": "./TrainingOutputs/KANs26Jul2024/22-44-1-LBFGS/",
+    "KAN 22-44-1 Adam": "./TrainingOutputs/KANs26Jul2024/22-44-1-Adam/",
+    "KAN 22-10-5-2-1": "./TrainingOutputs/KANs26Jul2024/22-10-5-2-1-LBFGS/",
+    "KAN 22-10-5-2-1 Adam": "./TrainingOutputs/KANs26Jul2024/22-10-5-2-1-Adam/",
+    "KAN 22-1 g=25": "./TrainingOutputs/KANs26Jul2024/22-1-LBFGS-grid25/",
 }
 
 
@@ -54,12 +42,12 @@ KAN_models_dict = {
     "KAN 22-1 Adam": KAN(width=[22, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
     "KAN 22-44-1": KAN(width=[22, 44, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
     "KAN 22-44-1 Adam": KAN(width=[22, 44, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-1 g=50": KAN(width=[22, 1], grid=50, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-1 g=25": KAN(width=[22, 1], grid=25, grid_range=(0,1), grid_eps=0, k=3, seed=42),
     "KAN 22-10-5-2-1": KAN(width=[22, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
     "KAN 22-10-5-2-1 Adam": KAN(width=[22, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
 }
 
-output_dir = "./TrainingOutputs/KAN_vs_MLP/ROC_curves18Jul2024/"
+output_dir = "./TrainingOutputs/KAN_vs_MLP/ROC_curves26Jul2024/"
 os.makedirs(output_dir, exist_ok=True)
 
 def human_readable_params(num):
@@ -214,7 +202,7 @@ for model_label, model_dir in model_dirs.items():
     )
     roc_auc = integrate.trapz(tpr, fpr)
 
-    eff_for_rejection = 0.8
+    eff_for_rejection = 0.7
     rejection = find_rejection_for_tpr(fpr, tpr, eff_for_rejection)
 
     mean_auc, std_auc, mean_rejection, std_rejection = bootstrap_roc_auc_rejection(predictions_dict, ttH_weights, tHq_weights, n_bootstrap=100, eff_for_rejection=eff_for_rejection)
@@ -285,10 +273,10 @@ for model_key in dict_AUC_rejection_nParams.keys():
 
 # perhaps need to remove error bars from legend, now it shows small ones hidden by markers
 ax_auc.legend(ncols=3, fontsize=16, columnspacing=0.5)
-ax_auc.set_xlabel("Number of trainable parameters")
-ax_auc.set_ylabel("ROC AUC")
+ax_auc.set_xlabel("Number of trainable parameters", fontsize=20)
+ax_auc.set_ylabel("ROC AUC", fontsize=20)
 # ax_auc.set_ylim(ax_auc.get_ylim()[0], 1.15*ax_auc.get_ylim()[1])
-ax_auc.set_ylim(0.9, 0.955)
+ax_auc.set_ylim(0.85, 0.925)
 fig_auc.tight_layout()
 fig_auc.savefig(os.path.join(output_dir, 'AUC_vs_N.pdf'))
 ax_auc.set_xscale("log")
@@ -297,8 +285,8 @@ fig_auc.savefig(os.path.join(output_dir, 'AUC_vs_N_log.pdf'))
 plt.close(fig_auc)
 
 ax_rej.legend(ncols=3, fontsize=16, columnspacing=0.5)
-ax_rej.set_xlabel("Number of trainable parameters")
-ax_rej.set_ylabel(r"$t\bar{t}H$ rejection $\left(\epsilon_{tH}=0.80\right)$")
+ax_rej.set_xlabel("Number of trainable parameters", fontsize=20)
+ax_rej.set_ylabel(r"$t\bar{t}H$ rejection $\left(\epsilon_{tH}=70\%\right)$", fontsize=20)
 # ax_rej.set_ylim(ax_rej.get_ylim()[0], 1.15*ax_rej.get_ylim()[1])
 ax_rej.set_ylim(0, 1.15*ax_rej.get_ylim()[1])
 fig_rej.tight_layout()
