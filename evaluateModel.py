@@ -22,29 +22,46 @@ from modules import plotter
 
 
 model_dirs = {
-    "MLP 128-64-32-16": "./TrainingOutputs/MLPs26Jul2024/128-64-32-16/",
-    "MLP 64-32-16": "./TrainingOutputs/MLPs26Jul2024/64-32-16/",
-    "MLP 1x32": "./TrainingOutputs/MLPs26Jul2024/32/",
-    "MLP 1x8": "./TrainingOutputs/MLPs26Jul2024/8/",
-#     "KAN 25-10-5-1": "./KAN_trainingsLowLevels/AllFeatures_25_10_5_1",
-    "KAN 22-1": "./TrainingOutputs/KANs26Jul2024/22-1-LBFGS/",
-    "KAN 22-1 Adam": "./TrainingOutputs/KANs26Jul2024/22-1-Adam/",
-    "KAN 22-44-1": "./TrainingOutputs/KANs26Jul2024/22-44-1-LBFGS/",
-    "KAN 22-44-1 Adam": "./TrainingOutputs/KANs26Jul2024/22-44-1-Adam/",
-    "KAN 22-10-5-2-1": "./TrainingOutputs/KANs26Jul2024/22-10-5-2-1-LBFGS/",
-    "KAN 22-10-5-2-1 Adam": "./TrainingOutputs/KANs26Jul2024/22-10-5-2-1-Adam/",
-    "KAN 22-1 g=25": "./TrainingOutputs/KANs26Jul2024/22-1-LBFGS-grid25/",
+    "MLP 22-8-1": "./TrainingOutputs/MLPs26Jul2024/8/",
+    "MLP 22-32-1": "./TrainingOutputs/MLPs26Jul2024/32/",
+    "MLP 22-64-32-16-1": "./TrainingOutputs/MLPs26Jul2024/64-32-16/",
+    "MLP 22-128-64-32-16-1": "./TrainingOutputs/MLPs26Jul2024/128-64-32-16/",
+    "MLP 22-256-128-64-32-16-1": "./TrainingOutputs/MLPs26Jul2024/256-128-64-32-16/",
+
+    "KAN 22-1": "./TrainingOutputs/KANs26Jul2024/22-1-Adam/",
+    "KAN 22-3-1": "./TrainingOutputs/KANs26Jul2024/22-3-1-Adam/",
+    "KAN 22-45-1": "./TrainingOutputs/KANs26Jul2024/22-45-1-Adam/",
+    "KAN 22-10-5-2-1": "./TrainingOutputs/KANs26Jul2024/22-10-5-2-1-Adam/",
+    "KAN 22-45-10-5-2-1": "./TrainingOutputs/KANs26Jul2024/22-45-10-5-2-1-Adam/",
+    "KAN 22-45-1 G=10": "./TrainingOutputs/KANs26Jul2024/22-45-1-Adam-grid10/",
+    "KAN 22-45-1 G=25": "./TrainingOutputs/KANs26Jul2024/22-45-1-Adam-grid25/",
 }
 
 
 KAN_models_dict = {
     "KAN 22-1": KAN(width=[22, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-3-1": KAN(width=[22, 3, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
     "KAN 22-1 Adam": KAN(width=[22, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-44-1": KAN(width=[22, 44, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-44-1 Adam": KAN(width=[22, 44, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-1 g=25": KAN(width=[22, 1], grid=25, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-45-1": KAN(width=[22, 45, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-45-1 Adam": KAN(width=[22, 45, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
     "KAN 22-10-5-2-1": KAN(width=[22, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
     "KAN 22-10-5-2-1 Adam": KAN(width=[22, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-45-10-5-2-1": KAN(width=[22, 45, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-1 G=25": KAN(width=[22, 1], grid=25, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-1 G=25 Adam": KAN(width=[22, 1], grid=25, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-45-1 G=25": KAN(width=[22, 45, 1], grid=25, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-45-1 G=25 Adam": KAN(width=[22, 45, 1], grid=25, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-10-5-2-1 G=25": KAN(width=[22, 10, 5, 2, 1], grid=25, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-10-5-2-1 G=25 Adam": KAN(width=[22, 10, 5, 2, 1], grid=25, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-45-10-5-2-1 G=25": KAN(width=[22, 45, 10, 5, 2, 1], grid=25, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+
+    "KAN 22-1 G=10": KAN(width=[22, 1], grid=10, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-1 G=10 Adam": KAN(width=[22, 1], grid=10, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-45-1 G=10": KAN(width=[22, 45, 1], grid=10, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-45-1 G=10 Adam": KAN(width=[22, 45, 1], grid=10, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-10-5-2-1 G=10": KAN(width=[22, 10, 5, 2, 1], grid=10, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-10-5-2-1 G=10 Adam": KAN(width=[22, 10, 5, 2, 1], grid=10, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-45-10-5-2-1 G=10": KAN(width=[22, 45, 10, 5, 2, 1], grid=10, grid_range=(0,1), grid_eps=0, k=3, seed=42),
 }
 
 output_dir = "./TrainingOutputs/KAN_vs_MLP/ROC_curves26Jul2024/"
@@ -61,6 +78,7 @@ def human_readable_params(num):
 
 # Read test datasets
 input_dir = "./ML_datasets"
+n_bootstrap = 100
 stop = 100_000
 df_ttH = pd.read_csv(os.path.join(input_dir, 'ttHCPEven_test.csv'), nrows=stop)
 df_tHq = pd.read_csv(os.path.join(input_dir, 'tHqCPEven_test.csv'), nrows=stop)
@@ -87,11 +105,11 @@ def create_histogram(predictions, weights, bins=20, range=(0, 1)):
     return hist
 
 # Function to plot ROC curve
-def plot_roc_curve(fpr, tpr, roc_auc, label, ax, n_params=None):
+def plot_roc_curve(fpr, tpr, roc_auc, label, ax, n_params=None, linestyle="solid"):
     if n_params is not None:
-        ax.plot(fpr, tpr, label=f'{label} (AUC = {roc_auc:.3f}, #{n_params})', linewidth=3)
+        ax.plot(fpr, tpr, label=f'{label} (AUC = {roc_auc:.3f}, #{n_params})', linewidth=3, linestyle=linestyle)
     else:
-        ax.plot(fpr, tpr, label=f'{label} (AUC = {roc_auc:.3f})', linewidth=3)
+        ax.plot(fpr, tpr, label=f'{label} (AUC = {roc_auc:.3f})', linewidth=3, linestyle=linestyle)
 
 
 # Function to create histograms
@@ -138,7 +156,7 @@ def find_rejection_for_tpr(fpr, tpr, target_tpr):
 
 
 # Initialize figures for combined ROC curves
-fig_roc_combined, ax_roc_combined = plt.subplots()
+fig_roc_combined, ax_roc_combined = plt.subplots(figsize=(8,6.5))
 dict_AUC_rejection_nParams = {}
 
 # Loop through each model directory
@@ -172,7 +190,7 @@ for model_label, model_dir in model_dirs.items():
         for i in range(len(model.width)-1):
             n_nodes = int(model.width[i][0])
             n_nodes_next = int(model.width[i+1][0])
-            n_params += n_nodes * n_nodes_next * (model.grid + model.k)
+            n_params += (n_nodes * n_nodes_next * (model.grid + model.k) + 2)
 
         histograms = {}
         predictions_dict = {}
@@ -205,7 +223,7 @@ for model_label, model_dir in model_dirs.items():
     eff_for_rejection = 0.7
     rejection = find_rejection_for_tpr(fpr, tpr, eff_for_rejection)
 
-    mean_auc, std_auc, mean_rejection, std_rejection = bootstrap_roc_auc_rejection(predictions_dict, ttH_weights, tHq_weights, n_bootstrap=100, eff_for_rejection=eff_for_rejection)
+    mean_auc, std_auc, mean_rejection, std_rejection = bootstrap_roc_auc_rejection(predictions_dict, ttH_weights, tHq_weights, n_bootstrap=n_bootstrap, eff_for_rejection=eff_for_rejection)
 
     dict_AUC_rejection_nParams[model_label] = np.array([mean_auc, std_auc, mean_rejection, std_rejection, n_params])
     n_params_human_readable = human_readable_params(n_params)
@@ -215,19 +233,30 @@ for model_label, model_dir in model_dirs.items():
     )
     fig, ax = plt.subplots()
     plot_roc_curve(fpr, tpr, roc_auc, "", ax, n_params_human_readable)
-    ax.set_xlabel("False Positive Rate")
-    ax.set_ylabel("True Positive Rate")
+    ax.set_xlabel("False positive rate")
+    ax.set_ylabel("True positive rate")
     ax.legend(loc="best")
     fig.savefig(os.path.join(model_dir, f'ROC_curve.pdf'))
     plt.close(fig)
 
-    plot_roc_curve(fpr, tpr, roc_auc, model_label, ax_roc_combined, n_params_human_readable)
+    models_to_use = [
+        "MLP 22-128-64-32-16-1",
+        "MLP 22-32-1",
+        "KAN 22-1",
+        "KAN 22-45-1",
+        "KAN 22-10-5-2-1"
+    ]
+
+    if model_label in models_to_use:
+        linestyle = "solid" if not "KAN" in model_label else "dashed"
+        plot_roc_curve(fpr, tpr, roc_auc, model_label, ax_roc_combined, None, linestyle)
 
 # Finalize and save combined ROC curves
-ax_roc_combined.set_xlabel("False Positive Rate")
-ax_roc_combined.set_ylabel("True Positive Rate")
+ax_roc_combined.set_xlabel("False Positive Rate", fontsize=20)
+ax_roc_combined.set_ylabel("True Positive Rate", fontsize=20)
 ax_roc_combined.set_ylim(0.4, 1.01)
-ax_roc_combined.legend(loc="best")
+ax_roc_combined.set_xlim(-0.01, 1.)
+ax_roc_combined.legend(loc="best", fontsize=18)
 fig_roc_combined.tight_layout()
 fig_roc_combined.savefig(os.path.join(output_dir, 'combined_ROC_curves.pdf'))
 plt.close(fig_roc_combined)
@@ -245,7 +274,7 @@ for model_key in dict_AUC_rejection_nParams.keys():
         errorbar_auc = ax_auc.errorbar(n_params, auc, yerr=auc_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
         errorbar_rej = ax_rej.errorbar(n_params, rejection, yerr=rejection_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
         i_MLP += 1
-    elif ("KAN" in model_key) and (not "g" in model_key) and (not "Adam" in model_key):
+    elif ("KAN" in model_key) and (not "g" in model_key): # and (not "Adam" in model_key):
         errorbar_auc = ax_auc.errorbar(n_params, auc, yerr=auc_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
         errorbar_rej = ax_rej.errorbar(n_params, rejection, yerr=rejection_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=13, elinewidth=3) # , alpha=0.7
         i_KAN += 1
@@ -296,3 +325,56 @@ fig_rej.tight_layout()
 fig_rej.savefig(os.path.join(output_dir, 'rej_vs_N_log.pdf'))
 plt.close(fig_rej)
 
+
+
+# Create a combined figure with two subplots in one row
+fig_combined, (ax_auc_combined, ax_rej_combined) = plt.subplots(1, 2, figsize=(18, 9.5))
+
+i_MLP = 0
+i_KAN = 0
+i_KAN_others = 0
+handles = []
+labels = []
+for model_key in dict_AUC_rejection_nParams.keys():
+    auc, auc_std, rejection, rejection_std, n_params = dict_AUC_rejection_nParams[model_key]
+    print(f"{model_key=} {auc=}, {auc_std=}, {rejection=}, {rejection_std=}, {n_params=}")
+    markers = ["X", "o", "P", "*", "^", "v", "<", ">", "."]
+    if "MLP" in model_key:
+        errorbar_auc = ax_auc_combined.errorbar(n_params, auc, yerr=auc_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=13, elinewidth=3, alpha=0.7)
+        errorbar_rej = ax_rej_combined.errorbar(n_params, rejection, yerr=rejection_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=13, elinewidth=3, alpha=0.7)
+        i_MLP += 1
+    elif ("KAN" in model_key) and (not "G=" in model_key): # and (not "Adam" in model_key):
+        errorbar_auc = ax_auc_combined.errorbar(n_params, auc, yerr=auc_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=13, elinewidth=3, alpha=0.7)
+        errorbar_rej = ax_rej_combined.errorbar(n_params, rejection, yerr=rejection_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=13, elinewidth=3, alpha=0.7)
+        i_KAN += 1
+    else:
+        errorbar_auc = ax_auc_combined.errorbar(n_params, auc, yerr=auc_std, color="tab:red", fmt=markers[i_KAN_others], label=model_key.replace("G=", r"$\mathit{G}=$"), ms=13, elinewidth=3, alpha=0.7)
+        errorbar_rej = ax_rej_combined.errorbar(n_params, rejection, yerr=rejection_std, color="tab:red", fmt=markers[i_KAN_others], label=model_key.replace("G=", r"$\mathit{G}=$"), ms=13, elinewidth=3, alpha=0.7)
+        i_KAN_others += 1
+
+# Collect handles and labels for the legend
+handles, labels = ax_auc_combined.get_legend_handles_labels()
+
+# Customize subplots
+fontsize=32
+ax_auc_combined.set_xlabel("Number of trainable parameters", fontsize=fontsize)
+ax_auc_combined.set_ylabel("ROC AUC", fontsize=fontsize)
+ax_auc_combined.set_ylim(0.85, 0.925)
+ax_auc_combined.set_xscale("log")
+ax_auc_combined.set_xlim(82, ax_auc_combined.get_xlim()[1])
+ax_auc_combined.tick_params(axis='both', labelsize=fontsize-5)
+
+ax_rej_combined.set_xlabel("Number of trainable parameters", fontsize=fontsize)
+ax_rej_combined.set_ylabel(r"$\mathit{t\bar{t}H}$ rejection $\left(\mathit{\epsilon_{tH}}=70\%\right)$", fontsize=fontsize)
+ax_rej_combined.set_ylim(0, 1.15 * ax_rej_combined.get_ylim()[1])
+ax_rej_combined.tick_params(axis='both', labelsize=fontsize-5)
+ax_rej_combined.set_xscale("log")
+ax_rej_combined.set_xlim(82, ax_rej_combined.get_xlim()[1])
+# Create a single shared legend
+fig_combined.legend(handles, labels, loc='upper center', ncol=3, fontsize=fontsize-4, columnspacing=0.5, bbox_to_anchor=(0.5, 1.03))
+
+# Adjust layout and save the combined figure
+fig_combined.tight_layout(rect=[0, 0, 1, 0.79])  # Adjust rect to make space for the legend
+os.makedirs(output_dir, exist_ok=True)
+fig_combined.savefig(os.path.join(output_dir, 'AUC_rejection_Nparams.pdf'))
+plt.close(fig_combined)

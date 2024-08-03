@@ -12,7 +12,7 @@ def load_history(path):
 # Paths to your history files
 paths = [
     '../TrainingOutputs/KANs26Jul2024/22-1-Adam/training_history.csv',
-    '../TrainingOutputs/KANs26Jul2024/22-44-1-Adam/training_history.csv',
+    '../TrainingOutputs/KANs26Jul2024/22-45-1-Adam/training_history.csv',
     '../TrainingOutputs/KANs26Jul2024/22-10-5-2-1-Adam/training_history.csv',
 ]
 
@@ -21,7 +21,7 @@ histories = [load_history(path) for path in paths]
 
 # Plotting
 fig, axes = plt.subplots(2, 3, figsize=(18, 12), sharey='row')
-font_size = 30
+font_size = 32
 line_width = 4
 handles, labels = [], []
 
@@ -54,7 +54,7 @@ for i, history in enumerate(histories):
     #     handles.extend([h3, h4])
     #     labels.extend(['Training Accuracy', 'Validation Accuracy'])
 # Set titles for each column
-titles = ['KAN 22-1', 'KAN 22-44-1', 'KAN 22-10-5-2-1']
+titles = ['KAN 22-1', 'KAN 22-45-1', 'KAN 22-10-5-2-1']
 for i, ax in enumerate(axes[0]):
     ax.set_title(titles[i], fontsize=font_size+2)
 # Adjust layout and create shared legend

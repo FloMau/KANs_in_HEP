@@ -20,24 +20,16 @@ sys.path.append("./..")
 from modules import plotter
 
 model_dirs = {
-    # "KAN 22-1": "../TrainingOutputs/KANs26Jul2024/22-1-LBFGS/",
     "KAN 22-1": "../TrainingOutputs/KANs26Jul2024/22-1-Adam/",
-    # "KAN 22-44-1": "../TrainingOutputs/KANs26Jul2024/22-44-1-LBFGS/",
-    "KAN 22-44-1": "../TrainingOutputs/KANs26Jul2024/22-44-1-Adam/",
-    # "KAN 22-10-5-2-1": "../TrainingOutputs/KANs26Jul2024/22-10-5-2-1-LBFGS/",
-    "KAN 22-10-5-2-1 Adam": "../TrainingOutputs/KANs26Jul2024/22-10-5-2-1-Adam/",
-    # "KAN 22-1 g=50": "../TrainingOutputs/KANs26Jul2024/22-1-LBFGS-grid50/",
+    "KAN 22-45-1": "../TrainingOutputs/KANs26Jul2024/22-45-1-Adam/",
+    "KAN 22-10-5-2-1": "../TrainingOutputs/KANs26Jul2024/22-10-5-2-1-Adam/",
 }
 
 
 KAN_models_dict = {
     "KAN 22-1": KAN(width=[22, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-1 Adam": KAN(width=[22, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-44-1": KAN(width=[22, 44, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-44-1 Adam": KAN(width=[22, 44, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-1 g=50": KAN(width=[22, 1], grid=50, grid_range=(0,1), grid_eps=0, k=3, seed=42),
+    "KAN 22-45-1": KAN(width=[22, 45, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
     "KAN 22-10-5-2-1": KAN(width=[22, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
-    "KAN 22-10-5-2-1 Adam": KAN(width=[22, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
 }
 
 
@@ -131,17 +123,18 @@ for idx, model_label in enumerate(model_dirs.keys()):
 
 ax.set_ylim(0.001, ax.get_ylim()[1])
 
-fontsize = 30
+fontsize = 32
 for ax in axes.flatten():
     ax.xaxis.label.set_size(fontsize)  # Set the x-axis label fontsize
     ax.yaxis.label.set_size(fontsize)  # Set the y-axis label fontsize
+    ax.tick_params(axis='both', labelsize=fontsize-5)
 
 
 # axes.flatten()[0].set_ylim(ax.get_ylim()[0], ax.get_ylim()[1])  # Replace (0, 1) with your desired ylim
 # axes.flatten()[0].set_ylim(axes.flatten()[0].get_ylim()[0], 0.9*axes.flatten()[0].get_ylim()[1]) 
 # axes.flatten()[5].set_ylim(axes.flatten()[5].get_ylim()[0], 0.71*axes.flatten()[5].get_ylim()[1]) 
 
-titles = ['KAN 22-1', 'KAN 22-44-1', 'KAN 22-10-5-2-1']
+titles = ['KAN 22-1', 'KAN 22-45-1', 'KAN 22-10-5-2-1']
 for i, ax in enumerate(axes):
     ax.set_title(titles[i], fontsize=fontsize+2)
 # Create a single shared legend

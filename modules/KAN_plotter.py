@@ -423,6 +423,10 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                 # print("x", model.acts[l][:, i][rank].cpu().detach().numpy())
                 # print("y", model.spline_postacts[l][:, j, i][rank].cpu().detach().numpy())
                 # exit()
+
+                ### notes for spline_postacts:
+                # returned from self.act_fun in Multkan, third return value (postacts_numerical). There, initialised as self.act_fun[l] = KANLayer(in_dim, out_dim + n_added_nodes, num=self.grid, k=self.k)
+                # third return value indeed corresponds to the y-value of the learned activation function evaluated at the x-values...
                 newax.plot(model.acts[l][:, i][rank].cpu().detach().numpy(), model.spline_postacts[l][:, j, i][rank].cpu().detach().numpy(), color="tab:red", lw=1)
                 newax.tick_params(axis="both", which="both", direction="in", pad=0, labelsize=2, length=1, width=0.1, grid_linewidth=0.1)
                 newax.tick_params(axis="both", which="minor", direction="in", pad=0, labelsize=1, length=0, width=0, grid_linewidth=0.1)

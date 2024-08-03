@@ -147,7 +147,7 @@ tex_feature_names = {
 'nJets': '$\mathit{N}$(jets)',
 'nLeptons': "$\mathit{N}$(leptons)",
 'nJetsCentral': "nJC",
-'nBjetsCentral': "$\mathit{N}$($\mathit{b}$-jets)",
+'nBjetsCentral': "$\mathit{N}$($\mathit{b}$-tags)",
 'nJetsForward': "nJF",
 'met': "$\mathit{E}_T^{miss}$",
 'metPhi': r"$\mathit{\phi}\left(\mathit{E}_T^{miss}\right)$",

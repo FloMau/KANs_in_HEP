@@ -148,7 +148,9 @@ weights_tHq = train_weights[train_labels == 1]
 plot_scaled_hists = True
 if plot_scaled_hists:
 
-    features_to_include = ["nLeptons", "nJets", "DeltaY_Hb", "delta_eta_b_j", "DeltaY_Hl"]
+    # features_to_include = ["nLeptons", "nJets", "DeltaY_Hb", "delta_eta_b_j", "DeltaY_Hl"]
+    features_to_include = ["nLeptons", "DeltaY_Hb", "leptonPt", "jetLeadEta", "rapiditySumJH"]
+
     if not plot_model:
         model.attribute()
     if not plot_model2:
@@ -157,24 +159,24 @@ if plot_scaled_hists:
     # Plotting
     fig, axes = plt.subplots(5, 2, figsize=(13, 20)) #, sharey='row')
     handles, _labels = [], []
-    idx = 0
     for i, fea in enumerate(features_to_use):
 
         if fea not in features_to_include:
             continue
 
+        idx = features_to_include.index(fea)
         ax = axes[idx, 0]
         right_ax = axes[idx, 1]
-        idx += 1
 
         n_bins = 20
         if "njets" in fea.lower() or "nlepton" in fea.lower():
             # print(np.unique(train_data_scaled[:,i]))
-            n_bins = len(np.unique(train_data_scaled[:,i]))
+            n_bins = 11 # len(np.unique(train_data_scaled[:,i]))
             if "jets" in fea.lower():
                 n_bins += 1
         hist_ttH = Hist.new.Reg(n_bins, 0, 1).Weight()
         hist_tHq = Hist.new.Reg(n_bins, 0, 1).Weight()
+
         hist_ttH.fill(
             dataset_ttH[:,i], weight=weights_ttH
         )
@@ -215,18 +217,21 @@ if plot_scaled_hists:
         density_tHq = values_tHq / (np.sum(weights_tHq) * bin_width)
 
         bins = hist_ttH.to_numpy()[1]
-        bin_centers = [(bins[ib] + bins[ib+1])/2 for ib in range(len(bins)-1)]
+        bin_centers = np.array([(bins[ib] + bins[ib+1])/2 for ib in range(len(bins)-1)])
+
 
         ratio = np.log(density_tHq / density_ttH)
-        ratio = np.nan_to_num(ratio, nan=5, neginf=-5, posinf=5)
+        # ratio = np.nan_to_num(ratio, nan=5, neginf=-5, posinf=5)
+
+        ratio = np.where(np.isinf(ratio), np.nan, ratio)
 
         ax2 = ax.twinx()
         ax2.plot(
-            bin_centers, 
-            ratio, 
+            bin_centers[~np.isnan(ratio)], 
+            ratio[~np.isnan(ratio)], 
             color="tab:grey",
             lw=5,
-            label=r"Log. likelihood ratio $\mathit{tH / t\bar{t}H}$",
+            label=r"Log. likelihood ratio $\mathit{tH\, /\, t\bar{t}H}$",
             linestyle="dashed",
             marker="none",
         )
