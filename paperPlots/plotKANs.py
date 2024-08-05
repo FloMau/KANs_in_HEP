@@ -109,13 +109,11 @@ model(dataset["train_input"])
 plot_model = False
 if plot_model:
     plt.figure(figsize=(10,6))
-    KAN_plotter.plot(model, folder=output_dir+"Splines", beta=3, mask=False, metric='backward', scale=1, tick=True, sample=False, in_vars=feature_labels, out_vars=['Output'], title=None, varscale=0.22)
+    KAN_plotter.plot(model, folder=output_dir+"Splines", beta=3, mask=False, metric='backward', scale=1, tick=True, sample=False, in_vars=feature_labels, out_vars=['Output'], title=None, varscale=0.24)
     # # KAN_plotter.plot_custom(model, beta=50, in_vars=features_to_use, folder=output_dir+"Splines/", out_vars=['ttH vs. tH'], title = 'My KAN', scale=10, tick=True, tick_size=100)
     # plt.tight_layout()
     plt.savefig(output_dir + "/KAN_22-1.pdf", bbox_inches='tight')
     plt.close()
-
-
 
 model2 = KAN(width=[22,3,1],
         grid=grid,
@@ -126,39 +124,63 @@ model2 = KAN(width=[22,3,1],
 
 model2.load_state_dict(torch.load(model2_dir + "model.pt"))
 model2(dataset["train_input"])
-plot_model2 = False
+plot_model2 = True
 if plot_model2:
 
     # print(model2.edge_scores)
     # exit()
 
     plt.figure(figsize=(10,6))
-    KAN_plotter.plot(model2, folder=output_dir+"Splines", beta=3, mask=False, metric='backward', scale=1, tick=True, sample=False, in_vars=feature_labels, out_vars=['Output'], title=None, varscale=0.22)
+    KAN_plotter.plot(model2, folder=output_dir+"Splines", beta=3, mask=False, metric='backward', scale=1, tick=True, sample=False, in_vars=feature_labels, out_vars=['Output'], title=None, varscale=0.24)
     # # KAN_plotter.plot_custom(model, beta=50, in_vars=features_to_use, folder=output_dir+"Splines/", out_vars=['ttH vs. tH'], title = 'My KAN', scale=10, tick=True, tick_size=100)
     # plt.tight_layout()
     plt.savefig(output_dir + "/KAN_22-3-1.pdf", bbox_inches='tight')
     plt.close()
-
 
 dataset_ttH = train_data_scaled[train_labels == 0]
 dataset_tHq = train_data_scaled[train_labels == 1]
 weights_ttH = train_weights[train_labels == 0]
 weights_tHq = train_weights[train_labels == 1]
 
-plot_scaled_hists = True
+plot_scaled_hists = False
 if plot_scaled_hists:
 
     # features_to_include = ["nLeptons", "nJets", "DeltaY_Hb", "delta_eta_b_j", "DeltaY_Hl"]
     features_to_include = ["nLeptons", "DeltaY_Hb", "leptonPt", "jetLeadEta", "rapiditySumJH"]
+    features_to_include = ["nLeptons", "DeltaY_Hb", "ptH", "jetLeadEta", "rapiditySumJH"]
 
     if not plot_model:
         model.attribute()
     if not plot_model2:
         model2.attribute()
+    
+    model1_for_plotting = KAN(
+        width=[w[0] for w in model.width],
+        grid=model.grid,
+        k=model.k,
+    )
+    model1_for_plotting.load_state_dict(model.state_dict())  # Load the cloned state dict
+    n_features = model.width_in[0]  # Change this according to your model's input features
+    n_rows = 10000
+    dataset = np.linspace(0, 1, n_rows)
+    dataset = np.tile(dataset, (n_features, 1)).T
+    dataset_tensor = torch.tensor(dataset, dtype=torch.float32)
+    model1_for_plotting.eval()  # Set the model to evaluation mode
+    with torch.no_grad():  # Disable gradient calculation for inference
+        model1_for_plotting.forward(dataset_tensor)
+
+    model2_for_plotting = KAN(
+        width=[w[0] for w in model2.width],
+        grid=model2.grid,
+        k=model2.k,
+    )
+    model2_for_plotting.load_state_dict(model2.state_dict())  # Load the cloned state dict
+    model2_for_plotting.eval()  # Set the model to evaluation mode
+    with torch.no_grad():  # Disable gradient calculation for inference
+        model2_for_plotting.forward(dataset_tensor)
 
     # Plotting
     fig, axes = plt.subplots(5, 2, figsize=(13, 20)) #, sharey='row')
-    handles, _labels = [], []
     for i, fea in enumerate(features_to_use):
 
         if fea not in features_to_include:
@@ -187,7 +209,7 @@ if plot_scaled_hists:
         label = plotter.tex_feature_names[fea]
         hep.histplot(
             [hist_ttH, hist_tHq],
-            label=[r"$\mathit{t\bar{t}H}$", r"$\mathit{tH}$"],
+            label=[r"Density $\mathit{t\bar{t}H}$", r"Density $\mathit{tH}$"],
             # bins=binning,
             linewidth=4,
             yerr=True,
@@ -219,22 +241,50 @@ if plot_scaled_hists:
         bins = hist_ttH.to_numpy()[1]
         bin_centers = np.array([(bins[ib] + bins[ib+1])/2 for ib in range(len(bins)-1)])
 
+        # Calculate the counts for each bin
+        counts_ttH = values_ttH / weights_ttH[0]
+        counts_tHq = values_tHq / weights_tHq[0]
 
         ratio = np.log(density_tHq / density_ttH)
-        # ratio = np.nan_to_num(ratio, nan=5, neginf=-5, posinf=5)
-
         ratio = np.where(np.isinf(ratio), np.nan, ratio)
 
+        # Apply the second mask to filter out insignificant bins
+        mask_significant = (counts_ttH >= 25) & (counts_tHq >= 25)
+        ratio = np.where(mask_significant, ratio, np.nan)
+
         ax2 = ax.twinx()
-        ax2.plot(
-            bin_centers[~np.isnan(ratio)], 
-            ratio[~np.isnan(ratio)], 
-            color="tab:grey",
-            lw=5,
-            label=r"Log. likelihood ratio $\mathit{tH\, /\, t\bar{t}H}$",
-            linestyle="dashed",
-            marker="none",
-        )
+        # For discrete variables, plot constant lines over the bin width
+        if fea == 'nLeptons':
+            filtered_bin_centers = bin_centers[~np.isnan(ratio)]
+            filtered_ratio = ratio[~np.isnan(ratio)]
+            filtered_bins = bins[:-1][~np.isnan(ratio)]
+            bin_width = bin_centers[1] - bin_centers[0]
+            for _i in range(len(filtered_bin_centers)):
+                ax2.hlines(
+                    filtered_ratio[_i],
+                    filtered_bins[_i],
+                    filtered_bins[_i] + bin_width,
+                    colors="tab:grey",
+                    lw=4,
+                    label=r"Log-likelihood ratio $\mathit{tH\, /\, t\bar{t}H}$" if _i == 0 else "",
+                    linestyle="solid",
+                )
+            ### increase ax2 range to avoid overlaying it over the histogram plots:
+            print(ax2.get_ylim())
+            ax_2_range = ax2.get_ylim()[1] - ax2.get_ylim()[0]
+            ax2.set_ylim(ax2.get_ylim()[0] - 0.15*ax_2_range, ax2.get_ylim()[1] + 0.15*ax_2_range)
+
+            print(ax2.get_ylim())
+        else:
+            ax2.plot(
+                bin_centers[~np.isnan(ratio)], 
+                ratio[~np.isnan(ratio)], 
+                color="tab:grey",
+                lw=4,
+                label=r"Log-likelihood ratio $\mathit{tH\, /\, t\bar{t}H}$",
+                linestyle="solid",
+                marker="none",
+            )
 
         handles_left, labels_left = ax.get_legend_handles_labels()
         handles_left2, labels_left2 = ax2.get_legend_handles_labels()
@@ -247,8 +297,8 @@ if plot_scaled_hists:
         for j in range(n_next2):
             rank = torch.argsort(model2.acts[l][:, i])
 
-            right_ax.plot(model2.acts[l][:, i][rank].cpu().detach().numpy(), 
-                model2.spline_postacts[l][:, j, i][rank].cpu().detach().numpy(), 
+            right_ax.plot(model2_for_plotting.acts[l][:, i].cpu().detach().numpy(), 
+                model2_for_plotting.spline_postacts[l][:, j, i].cpu().detach().numpy(), 
                 color="tab:green", lw=4, label=f"22-3-1 spline {j+1}", linestyle=linestyles[j]
             )
         width_out = np.array(model.width_out)
@@ -257,8 +307,8 @@ if plot_scaled_hists:
         for j in range(n_next):
             rank = torch.argsort(model.acts[l][:, i])
 
-            right_ax.plot(model.acts[l][:, i][rank].cpu().detach().numpy(), 
-                model.spline_postacts[l][:, j, i][rank].cpu().detach().numpy(), 
+            right_ax.plot(model1_for_plotting.acts[l][:, i].cpu().detach().numpy(), 
+                model1_for_plotting.spline_postacts[l][:, j, i].cpu().detach().numpy(), 
                 color="tab:red", lw=4, label="22-1 spline", linestyle=linestyles[j]
             )
         handles_right, labels_right = right_ax.get_legend_handles_labels()
@@ -268,8 +318,7 @@ if plot_scaled_hists:
         ax.set_ylabel("Density", fontsize=fontsize)
         right_ax.set_xlabel("Scaled " + label, fontsize=fontsize)
         right_ax.set_ylabel("Spline", fontsize=fontsize)
-        # ax2.set_ylabel(r"$ln\left(\mathit{p(tH) / p(t\bar{t}H}\right)$", fontsize=fontsize)
-        ax2.set_ylabel(r"Log. LH ratio", fontsize=fontsize)
+        ax2.set_ylabel(r"Log-LH ratio", fontsize=fontsize)
 
     # Create invisible axes for the legends
     legend_ax_left = fig.add_subplot(111, frame_on=False)
@@ -286,52 +335,6 @@ if plot_scaled_hists:
 
     # Create a single shared legend
     fig.tight_layout() #rect=[0, 0, 1, 0.94])  # Adjust rect to make space for the legend: 
-    # fig.legend(handles, _labels, loc='upper right', ncol=2, fontsize=fontsize+2, bbox_to_anchor=(0.925, 1.02))
     # Adjust layout and save
     fig.savefig(output_dir + "SplinesLikelihoodRatios.pdf")
     plt.close(fig)
-
-    exit()
-
-
-
-    ##### for JE: plot likelihood ratio as well....
-    include_ratio = True
-    if include_ratio:
-        counts_ttH = hist_ttH.to_numpy()[0] / hist_ttH.sum().value
-        counts_tHq = hist_tHq.to_numpy()[0] / hist_tHq.sum().value
-        spline = model.spline_postacts[l][:, j, i][rank].cpu().detach().numpy()
-
-        bins = hist_ttH.to_numpy()[1]
-        bin_centers = [(bins[ib] + bins[ib+1])/2 for ib in range(len(bins)-1)]
-
-        ratio = np.log(counts_tHq / counts_ttH)
-
-        fig2, ax = plt.subplots()
-        ax.plot(model.acts[l][:, i][rank].cpu().detach().numpy(), 
-            model.spline_postacts[l][:, j, i][rank].cpu().detach().numpy(), 
-            color="tab:red", lw=5, label="Spline", linestyle="dotted"
-        )
-        ax2 = ax.twinx()
-        ax2.plot(
-            bin_centers, 
-            ratio, 
-            color="tab:grey",
-            lw=5,
-            label="log(L(tH) / L(ttH))",
-            linestyle="dotted",
-            marker="x",
-            # linestyle="None"
-            )
-        
-        lines, labels = ax.get_legend_handles_labels()
-        lines2, labels2 = ax2.get_legend_handles_labels()
-        ax.legend(lines + lines2, labels + labels2)
-        ax.set_xlabel(fea)
-        ax.set_ylabel("KAN-learned spline")
-        ax2.set_ylabel("Log. likelihood ratio")
-        fig.tight_layout()
-        os.makedirs(output_dir + f"PlotsScaledFeaturesWithLH/", exist_ok=True)
-        plt.savefig(output_dir + f"PlotsScaledFeaturesWithLH/{fea}.pdf")
-    plt.close()
-

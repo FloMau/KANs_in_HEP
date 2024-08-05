@@ -10,6 +10,7 @@ import mplhep as hep
 from kan import KAN
 import sympy
 import PIL
+from copy import deepcopy
 import mplhep as hep 
 plt.style.use([hep.style.ROOT])
 
@@ -170,6 +171,7 @@ def plot_custom(model, folder="./figures", beta=3, mask=False, mode="supervised"
     plt.axis('off')
 
     # plot splines
+
     for l in range(neuron_depth - 1):
         n = width[l]
         for i in range(n):
@@ -238,6 +240,8 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
     if not os.path.exists(folder):
         os.makedirs(folder)
     # matplotlib.use('Agg')
+
+    # separate spline plots here
     depth = len(model.width) - 1
     for l in range(depth):
         w_large = 2.0
@@ -281,6 +285,8 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                 plt.gca().patch.set_linewidth(1.5)
                 # plt.axis('off')
 
+                # dont need these plots ATM, reduce time
+                # continue
                 plt.plot(model.acts[l][:, i][rank].cpu().detach().numpy(), model.spline_postacts[l][:, j, i][rank].cpu().detach().numpy(), color=color, lw=5)
                 if sample == True:
                     plt.scatter(model.acts[l][:, i][rank].cpu().detach().numpy(), model.spline_postacts[l][:, j, i][rank].cpu().detach().numpy(), color=color, s=400 * scale ** 2)
@@ -311,6 +317,30 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
         raise Exception(f'metric = \'{metric}\' not recognized')
 
     alpha = [score2alpha(score.cpu().detach().numpy()) for score in scores]
+
+    ### I don't get the right L_1 norms with the built-in methods... calculate here:
+    ### get L1 explicitly:
+
+    width_in = np.array(model.width_in)
+    width_out = np.array(model.width_out)
+    L1_norms = []
+
+    for l in range(len(model.width) - 1):
+        n = width_in[l]
+        n_next = width_out[l + 1]
+        layer_norms = np.zeros((n, n_next))
+        for i in range(n):
+            for j in range(n_next):
+                y = model.spline_postacts[l][:, j, i].cpu().detach().numpy()
+                L1_norm = np.mean(np.abs(y))
+                layer_norms[i, j] = L1_norm
+        L1_norms.append(layer_norms)
+
+    L1_norms_normalized = [layer / np.max(layer) for layer in L1_norms]
+    L1_norms = np.array(L1_norms, dtype=object)
+    L1_norms_normalized = np.array(L1_norms_normalized, dtype=object)
+    # Now you can use the normalized L1 norms
+    alpha = L1_norms_normalized
 
     # draw skeleton
     width = np.array(model.width)
@@ -353,14 +383,13 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                 N = n * n_next
                 for j in range(n_next):
                     id_ = i * n_next + j
-
                     color="black"
                     if mask == True:
                         plt.plot([1 / (2 * n) + i / n, 1 / (2 * N) + id_ / N], [l * (y0+z0), l * (y0+z0) + y0/2 - y1], color=color, lw=2 * scale, alpha=alpha[l][j][i] * model.mask[l][i].item() * model.mask[l + 1][j].item())
                         plt.plot([1 / (2 * N) + id_ / N, 1 / (2 * n_next) + j / n_next], [l * (y0+z0) + y0/2 + y1, l * (y0+z0)+y0], color=color, lw=2 * scale, alpha=alpha[l][j][i] * model.mask[l][i].item() * model.mask[l + 1][j].item())
                     else:
-                        plt.plot([1 / (2 * n) + i / n, 1 / (2 * N) + id_ / N], [l * (y0+z0), l * (y0+z0) + y0/2 - y1], color=color, lw=2 * scale, alpha=alpha[l][j][i] * alpha_mask)
-                        plt.plot([1 / (2 * N) + id_ / N, 1 / (2 * n_next) + j / n_next], [l * (y0+z0) + y0/2 + y1, l * (y0+z0)+y0], color=color, lw=2 * scale, alpha=alpha[l][j][i] * alpha_mask)
+                        plt.plot([1 / (2 * n) + i / n, 1 / (2 * N) + id_ / N], [l * (y0+z0), l * (y0+z0) + y0/2 - y1], color=color, lw=2 * scale, alpha=alpha[l][i][j] * alpha_mask) # l j i were the indices before
+                        plt.plot([1 / (2 * N) + id_ / N, 1 / (2 * n_next) + j / n_next], [l * (y0+z0) + y0/2 + y1, l * (y0+z0)+y0], color=color, lw=2 * scale, alpha=alpha[l][i][j] * alpha_mask) # l j i were the indices before
 
         # plot connections (pre-mult to post-mult, post-mult = next-layer input)
         if l < neuron_depth - 1:
@@ -394,15 +423,37 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
 
     plt.axis('off')
 
+    ###################
+    # plot splines:
+    ###################
+
+    ### dirty fix trying to overcome the issue of plotting discrete input features by building a new model and feeding a continuous dataset into it. will only work for models with grid range (0,1)
+    print("WARNING: plotting KAN evaluated on pseudodataset")
+    model_for_plotting = KAN(
+        width=[w[0] for w in model.width],
+        grid=model.grid,
+        k=model.k,
+    )
+    model_for_plotting.load_state_dict(model.state_dict())  # Load the cloned state dict
+    n_features = model.width_in[0]  # Change this according to your model's input features
+    n_rows = 10000
+    dataset = np.linspace(0, 1, n_rows)
+    dataset = np.tile(dataset, (n_features, 1)).T
+    dataset_tensor = torch.tensor(dataset, dtype=torch.float32)
+    model_for_plotting.eval()  # Set the model to evaluation mode
+    with torch.no_grad():  # Disable gradient calculation for inference
+        model_for_plotting.forward(dataset_tensor)
+    ###
+
     for l in range(neuron_depth - 1):
-        # plot splines
         n = width_in[l]
         for i in range(n):
             n_next = width_out[l + 1]
             N = n * n_next
             for j in range(n_next):
 
-                rank = torch.argsort(model.acts[l][:, i])
+                # rank = torch.argsort(model.acts[l][:, i])
+                rank = torch.argsort(model_for_plotting.acts[l][:, i])
 
                 id_ = i * n_next + j
                 # im = plt.imread(f'{folder}/sp_{l}_{i}_{j}.png')
@@ -411,9 +462,17 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                 right = DC_to_NFC([1 / (2 * N) + id_ / N + y1, 0])[0]
                 bottom = DC_to_NFC([0, l * (y0+z0) + y0/2 - y1])[1]
                 up = DC_to_NFC([0, l * (y0+z0) + y0/2 + y1])[1]
-                newax = fig.add_axes([left, bottom, right - left, up - bottom])
+
+                if l == 0:
+                    newax = fig.add_axes([left, bottom, right - left, up - bottom])
                 
-                
+                # dirty fix to increase size of plots in deeper layers which in our case are less wide
+                else:
+                    left, right, bottom, up
+                    width = right - left
+                    height = up - bottom
+                    newax = fig.add_axes([left-width, bottom-2*height, 3*width, 3*height])
+
                 # newax = fig.add_axes([1/(2*N)+id_/N-y1, (l+1/2)*y0-y1, y1, y1], anchor='NE')
                 # if mask == False:
                 #     newax.imshow(im, alpha=alpha[l][j][i])
@@ -427,7 +486,8 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                 ### notes for spline_postacts:
                 # returned from self.act_fun in Multkan, third return value (postacts_numerical). There, initialised as self.act_fun[l] = KANLayer(in_dim, out_dim + n_added_nodes, num=self.grid, k=self.k)
                 # third return value indeed corresponds to the y-value of the learned activation function evaluated at the x-values...
-                newax.plot(model.acts[l][:, i][rank].cpu().detach().numpy(), model.spline_postacts[l][:, j, i][rank].cpu().detach().numpy(), color="tab:red", lw=1)
+                # newax.plot(model.acts[l][:, i][rank].cpu().detach().numpy(), model.spline_postacts[l][:, j, i][rank].cpu().detach().numpy(), color="tab:red", lw=1)
+                newax.plot(model_for_plotting.acts[l][:, i][rank].cpu().detach().numpy(), model_for_plotting.spline_postacts[l][:, j, i][rank].cpu().detach().numpy(), color="tab:red", lw=1)
                 newax.tick_params(axis="both", which="both", direction="in", pad=0, labelsize=2, length=1, width=0.1, grid_linewidth=0.1)
                 newax.tick_params(axis="both", which="minor", direction="in", pad=0, labelsize=1, length=0, width=0, grid_linewidth=0.1)
 
@@ -451,9 +511,9 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
 
     if in_vars != None:
         n = model.width_in[0]
-        # edge scores corresponds to l1 from edge used in MultKAN's fit method...
-        norms = model.edge_scores[0].cpu().detach().numpy()
-        norms = np.mean(norms, axis=0)
+        norms_for_plot = L1_norms[0]
+        norms_for_plot = np.mean(norms_for_plot, axis=1)
+
         print_norm_explicitly = True
 
         for i in range(n):
@@ -472,7 +532,7 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                 )
                 if print_norm_explicitly:
                     # this works so far only for the one layer KAN where one input corresponds to one spline
-                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n)-0.01, 0.07, f"{norms[i]:.2f}", fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center', rotation=90, rotation_mode="anchor")
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n)-0.01, 0.07, f"{norms_for_plot[i]:.2f}", fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center', rotation=90, rotation_mode="anchor")
 
     if out_vars != None:
         n = model.width_in[-1]
