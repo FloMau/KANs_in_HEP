@@ -340,16 +340,16 @@ for model_key in dict_AUC_rejection_nParams.keys():
     print(f"{model_key=} {auc=}, {auc_std=}, {rejection=}, {rejection_std=}, {n_params=}")
     markers = ["X", "o", "P", "*", "^", "v", "<", ">", "."]
     if "MLP" in model_key:
-        errorbar_auc = ax_auc_combined.errorbar(n_params, auc, yerr=auc_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=13, elinewidth=3, alpha=0.7)
-        errorbar_rej = ax_rej_combined.errorbar(n_params, rejection, yerr=rejection_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=13, elinewidth=3, alpha=0.7)
+        errorbar_auc = ax_auc_combined.errorbar(n_params, auc, yerr=auc_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=15, elinewidth=3, alpha=0.7)
+        errorbar_rej = ax_rej_combined.errorbar(n_params, rejection, yerr=rejection_std, color="tab:orange", fmt=markers[i_MLP], label=model_key, ms=15, elinewidth=3, alpha=0.7)
         i_MLP += 1
     elif ("KAN" in model_key) and (not "G=" in model_key): # and (not "Adam" in model_key):
-        errorbar_auc = ax_auc_combined.errorbar(n_params, auc, yerr=auc_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=13, elinewidth=3, alpha=0.7)
-        errorbar_rej = ax_rej_combined.errorbar(n_params, rejection, yerr=rejection_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=13, elinewidth=3, alpha=0.7)
+        errorbar_auc = ax_auc_combined.errorbar(n_params, auc, yerr=auc_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=15, elinewidth=3, alpha=0.7)
+        errorbar_rej = ax_rej_combined.errorbar(n_params, rejection, yerr=rejection_std, color="tab:blue", fmt=markers[i_KAN], label=model_key, ms=15, elinewidth=3, alpha=0.7)
         i_KAN += 1
     else:
-        errorbar_auc = ax_auc_combined.errorbar(n_params, auc, yerr=auc_std, color="tab:red", fmt=markers[i_KAN_others], label=model_key.replace("G=", r"$\mathit{G}=$"), ms=13, elinewidth=3, alpha=0.7)
-        errorbar_rej = ax_rej_combined.errorbar(n_params, rejection, yerr=rejection_std, color="tab:red", fmt=markers[i_KAN_others], label=model_key.replace("G=", r"$\mathit{G}=$"), ms=13, elinewidth=3, alpha=0.7)
+        errorbar_auc = ax_auc_combined.errorbar(n_params, auc, yerr=auc_std, color="tab:red", fmt=markers[i_KAN_others], label=model_key.replace("G=", r"$\mathit{G}=$"), ms=15, elinewidth=3, alpha=0.7)
+        errorbar_rej = ax_rej_combined.errorbar(n_params, rejection, yerr=rejection_std, color="tab:red", fmt=markers[i_KAN_others], label=model_key.replace("G=", r"$\mathit{G}=$"), ms=15, elinewidth=3, alpha=0.7)
         i_KAN_others += 1
 
 # Collect handles and labels for the legend

@@ -32,7 +32,6 @@ KAN_models_dict = {
     "KAN 22-10-5-2-1": KAN(width=[22, 10, 5, 2, 1], grid=5, grid_range=(0,1), grid_eps=0, k=3, seed=42),
 }
 
-
 # Read test datasets
 input_dir = "../ML_datasets"
 stop = 100_000

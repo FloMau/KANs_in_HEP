@@ -33,7 +33,7 @@ with open(config_path, 'r') as config_file:
 input_dir = "../ML_datasets"
 
 # Read datasets
-stop = 10_000
+# stop = 10_000
 stop = None
 df_ttH_train = pd.read_csv(os.path.join(input_dir, 'ttHCPEven_train.csv'), nrows=stop)
 df_tHq_train = pd.read_csv(os.path.join(input_dir, 'tHqCPEven_train.csv'), nrows=stop)
@@ -106,7 +106,7 @@ model(dataset["train_input"])
 
 # print(model.edge_scores)
 # exit()
-plot_model = False
+plot_model = True
 if plot_model:
     plt.figure(figsize=(10,6))
     KAN_plotter.plot(model, folder=output_dir+"Splines", beta=3, mask=False, metric='backward', scale=1, tick=True, sample=False, in_vars=feature_labels, out_vars=['Output'], title=None, varscale=0.24)
@@ -153,7 +153,7 @@ if plot_scaled_hists:
         model.attribute()
     if not plot_model2:
         model2.attribute()
-    
+
     model1_for_plotting = KAN(
         width=[w[0] for w in model.width],
         grid=model.grid,
@@ -331,7 +331,6 @@ if plot_scaled_hists:
     # Add legends to the invisible axes
     legend_ax_left.legend(handles_left+handles_left2, labels_left+labels_left2, loc='upper center', ncol=1, fontsize=fontsize, bbox_to_anchor=(0.25, 1.18))
     legend_ax_right.legend(handles_right, labels_right, loc='upper center', ncol=1, fontsize=fontsize, bbox_to_anchor=(0.75, 1.18))
-
 
     # Create a single shared legend
     fig.tight_layout() #rect=[0, 0, 1, 0.94])  # Adjust rect to make space for the legend: 

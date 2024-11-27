@@ -369,9 +369,9 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
     
     # plot scatters and lines
     for l in range(neuron_depth):
-        
+
         n = width_in[l]
-        
+
         # scatters
         for i in range(n):
             plt.scatter(1 / (2 * n) + i / n, l * (y0+z0), s=min_spacing ** 2 * 10000 * scale ** 2, color='black')
@@ -443,7 +443,6 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
     model_for_plotting.eval()  # Set the model to evaluation mode
     with torch.no_grad():  # Disable gradient calculation for inference
         model_for_plotting.forward(dataset_tensor)
-    ###
 
     for l in range(neuron_depth - 1):
         n = width_in[l]
@@ -464,14 +463,14 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                 up = DC_to_NFC([0, l * (y0+z0) + y0/2 + y1])[1]
 
                 if l == 0:
-                    newax = fig.add_axes([left, bottom, right - left, up - bottom])
-                
-                # dirty fix to increase size of plots in deeper layers which in our case are less wide
-                else:
-                    left, right, bottom, up
                     width = right - left
                     height = up - bottom
-                    newax = fig.add_axes([left-width, bottom-2*height, 3*width, 3*height])
+                    newax = fig.add_axes([left, bottom, width, height])
+                # dirty fix to increase size of plots in deeper layers which in our case are less wide
+                else:
+                    width = 3 * (right - left)
+                    height = 3 * (up - bottom)
+                    newax = fig.add_axes([left-1/3*width, bottom-2/3*height, width, height])
 
                 # newax = fig.add_axes([1/(2*N)+id_/N-y1, (l+1/2)*y0-y1, y1, y1], anchor='NE')
                 # if mask == False:
@@ -495,19 +494,6 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                     spine.set_linewidth(0.1)  # Set a very thin width
                     spine.set_color('black')  # Ensure the color is black
 
-        # plot sum symbols
-        # N = n = width_out[l+1]
-        # for j in range(n):
-        #     id_ = j
-        #     path = os.path.dirname(os.path.abspath(__file__)) + "/assets/img/sum_symbol.png"
-        #     im = plt.imread(path)
-        #     left = DC_to_NFC([1 / (2 * N) + id_ / N - y2, 0])[0]
-        #     right = DC_to_NFC([1 / (2 * N) + id_ / N + y2, 0])[0]
-        #     bottom = DC_to_NFC([0, l * (y0+z0) + y0 - y2])[1]
-        #     up = DC_to_NFC([0, l * (y0+z0) + y0 + y2])[1]
-        #     newax = fig.add_axes([left, bottom, right - left, up - bottom])
-        #     newax.imshow(im)
-        #     newax.axis('off')
 
     if in_vars != None:
         n = model.width_in[0]
@@ -541,6 +527,22 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
                 plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(model.width) - 1) + 0.15, f'${latex(out_vars[i])}$', fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
             else:
                 plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(model.width) - 1) + 0.03, out_vars[i], fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
+
+    plot_sigmoid = True
+    if plot_sigmoid:
+        y_l = 0.785
+        x_min, x_max = -11, 11
+        if l == 0:
+            y_l = 0.705
+            x_min, x_max = -5.5, 5.5
+        x_sigmoid = np.linspace(x_min, x_max, 1000)
+        newax = fig.add_axes([0.4985, y_l, width, height])
+        newax.plot(x_sigmoid, 1/(1+np.exp(-x_sigmoid)), color="tab:blue", linewidth=1)
+        newax.tick_params(axis="both", which="both", direction="in", pad=0, labelsize=2, length=1, width=0.1, grid_linewidth=0.1)
+        newax.tick_params(axis="both", which="minor", direction="in", pad=0, labelsize=1, length=0, width=0, grid_linewidth=0.1)
+        for spine in newax.spines.values():
+            spine.set_linewidth(0.1)  # Set a very thin width
+            spine.set_color('black')  # Ensure the color is black
 
     if title != None:
         plt.gcf().get_axes()[0].text(0.5, (y0+z0) * (len(model.width) - 1) + 0.3, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
