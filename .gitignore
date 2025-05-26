@@ -1,0 +1,9 @@
+ML_datasets/
+PlotsDelphes/
+PlotsInputFeatures/
+TrainingOutputs/
+TrainingOutputsCMSSW_samples/
+__pycache__/
+*.pdf
+paperPlots/KAN_plots_paperVersion/
+*.pt

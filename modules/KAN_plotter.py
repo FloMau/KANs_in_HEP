@@ -546,3 +546,27 @@ def plot(model, folder="./figures", beta=3, mask=False, metric='backward', scale
 
     if title != None:
         plt.gcf().get_axes()[0].text(0.5, (y0+z0) * (len(model.width) - 1) + 0.3, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
+
+
+
+def get_L1_norms(model):
+
+    width_in = np.array(model.width_in)
+    width_out = np.array(model.width_out)
+
+    L1_norms = []
+
+    for l in range(len(model.width) - 1):
+        n = width_in[l]
+        n_next = width_out[l + 1]
+        layer_norms = np.zeros((n, n_next))
+        for i in range(n):
+            for j in range(n_next):
+                y = model.spline_postacts[l][:, j, i].cpu().detach().numpy()
+                L1_norm = np.mean(np.abs(y))
+                layer_norms[i, j] = L1_norm
+        L1_norms.append(layer_norms)
+
+    L1_norms = np.array(L1_norms, dtype=object)
+
+    return L1_norms
