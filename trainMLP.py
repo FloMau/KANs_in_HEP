@@ -58,7 +58,6 @@ val_weights_tHqCPEven = val_weights_tHqCPEven * len(val_weights_tHqCPEven) / np.
 
 train_weights = pd.concat([train_weights_ttHCPEven, train_weights_tHqCPEven]).astype(np.float32)
 val_weights = pd.concat([val_weights_ttHCPEven, val_weights_tHqCPEven]).astype(np.float32)
-## are 1.0 for all events....
 
 train_data, train_labels, train_weights = shuffle(train_data, train_labels, train_weights, random_state=0)
 val_data, val_labels, val_weights = shuffle(val_data, val_labels, val_weights, random_state=0)
@@ -267,6 +266,3 @@ ax[1].legend(loc='upper left', fontsize=0.8*font_size)
 plot_filename = os.path.join(output_dir, 'TrainingHistory.pdf')
 fig.tight_layout()
 fig.savefig(plot_filename)
-
-plt.show()
-

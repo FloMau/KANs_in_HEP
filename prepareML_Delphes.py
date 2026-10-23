@@ -21,7 +21,6 @@ def main(path, entryStop):
 
     print("INFO: reading file", path)
     events = NanoEventsFactory.from_root(path, treepath="Delphes", schemaclass=DelphesSchema, entry_stop=entryStop).events()
-    # print(events.MissingET.MET); exit()
     nEvents = len(events)
     events = event_selection(events)
 
@@ -131,9 +130,6 @@ filenamesTtHCPEven = glob.glob(basepath_ttH + "ttH*.root")
 filenamesTHqCPEven = glob.glob(basepath_tHq + "tHq*.root")
 
 stop = None
-# stop = 300
-
-print(filenamesTtHCPEven)
 
 dfTtHCPEven = pd.concat(
     [main(file, entryStop=stop) for file in filenamesTtHCPEven]

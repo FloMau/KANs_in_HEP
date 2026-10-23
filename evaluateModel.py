@@ -125,10 +125,7 @@ def bootstrap_roc_auc_rejection(predictions_dict, ttH_weights, tHq_weights, n_bo
     y_true = np.concatenate([np.zeros(len(predictions_dict['ttH'])), np.ones(len(predictions_dict['tHq']))])
     y_score = np.concatenate([predictions_dict['ttH'], predictions_dict['tHq']])
     sample_weight = np.concatenate([ttH_weights, tHq_weights])
-    # i = 0
     for _ in range(n_bootstrap):
-        # i += 1
-        # print(i)
         # Resample with replacement
         indices = resample(np.arange(len(y_true)), replace=True)
         y_true_resampled = y_true[indices]
@@ -140,9 +137,7 @@ def bootstrap_roc_auc_rejection(predictions_dict, ttH_weights, tHq_weights, n_bo
         aucs.append(roc_auc)
         rejection = find_rejection_for_tpr(fpr, tpr, eff_for_rejection)
         rejections.append(rejection)
-    # print(f"{aucs=}")
-    # print(np.mean(aucs), np.std(aucs))
-    # exit()
+
     return np.mean(aucs), np.std(aucs), np.mean(rejections), np.std(rejections)
 
 def find_rejection_for_tpr(fpr, tpr, target_tpr):
@@ -289,7 +284,6 @@ for model_key in dict_AUC_rejection_nParams.keys():
 
     # Customize error bars' alpha and linestyle
     for line in errorbar_auc[2]:
-        # line.set_alpha(0.7)  # Set error bars' alpha
         line.set_linestyle('--')  # Set error bars' linestyle to dashed
     # Customize markers' alpha
     for cap in errorbar_rej[1]:
@@ -297,14 +291,12 @@ for model_key in dict_AUC_rejection_nParams.keys():
 
     # Customize error bars' alpha and linestyle
     for line in errorbar_rej[2]:
-        # line.set_alpha(0.7)  # Set error bars' alpha
         line.set_linestyle('--')  # Set error bars' linestyle to dashed
 
 # perhaps need to remove error bars from legend, now it shows small ones hidden by markers
 ax_auc.legend(ncols=3, fontsize=16, columnspacing=0.5)
 ax_auc.set_xlabel("Number of trainable parameters", fontsize=20)
 ax_auc.set_ylabel("ROC AUC", fontsize=20)
-# ax_auc.set_ylim(ax_auc.get_ylim()[0], 1.15*ax_auc.get_ylim()[1])
 ax_auc.set_ylim(0.85, 0.925)
 fig_auc.tight_layout()
 fig_auc.savefig(os.path.join(output_dir, 'AUC_vs_N.pdf'))
@@ -316,7 +308,6 @@ plt.close(fig_auc)
 ax_rej.legend(ncols=3, fontsize=16, columnspacing=0.5)
 ax_rej.set_xlabel("Number of trainable parameters", fontsize=20)
 ax_rej.set_ylabel(r"$t\bar{t}H$ rejection $\left(\epsilon_{tH}=70\%\right)$", fontsize=20)
-# ax_rej.set_ylim(ax_rej.get_ylim()[0], 1.15*ax_rej.get_ylim()[1])
 ax_rej.set_ylim(0, 1.15*ax_rej.get_ylim()[1])
 fig_rej.tight_layout()
 fig_rej.savefig(os.path.join(output_dir, 'rej_vs_N.pdf'))

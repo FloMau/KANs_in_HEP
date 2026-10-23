@@ -16,21 +16,18 @@ def event_selection(events, channel="lep"):
 
     # https://github.com/cms-sw/cmssw/blob/master/GeneratorInterface/RivetInterface/python/particleLevel_cfi.py
 
-
     photons = events.Photon
     photons = photons[
         (photons.pt > 25) &
         (np.abs(photons.eta) < 2.5)
     ]
     ### string vs. dot notation, use string notation to assign values!
-    # print("Photon eff:", len(photons[ak.num(photons)==2]) / len(photons))
     events["Photon"] = photons
 
     #### lepton selections
     electrons = events.Electron
 
     electrons = electrons[
-        # ((np.abs(electrons.pdgId) == 11) | (np.abs(electrons.pdgId) == 13)) &
         (np.abs(electrons.eta) < 2.4) & (electrons.pt > 10)
     ]
 
@@ -40,11 +37,10 @@ def event_selection(events, channel="lep"):
     muons = events.Muon
 
     muons = muons[
-        # ((np.abs(muons.pdgId) == 11) | (np.abs(muons.pdgId) == 13)) &
         (np.abs(muons.eta) < 2.4) & (muons.pt > 10)
     ]
 
-    muons["mass"] = 0.106 * np.ones(len(electrons))
+    muons["mass"] = 0.106 * np.ones(len(muons))
     events["Muon"] = muons
 
     # Concatenate electrons and muons
@@ -53,15 +49,12 @@ def event_selection(events, channel="lep"):
     leptons["pt"] = leptons.PT
     leptons["eta"] = leptons.Eta
     leptons["phi"] = leptons.Phi
-    # leptons["mass"] = leptons.Mass
 
     # Sort the concatenated collection by pt
     leptons = leptons[ak.argsort(leptons.pt, ascending=False)]
 
-
     # Assign the sorted collection to a new field "Lepton" in the events
     events["Lepton"] = leptons
-    # print("lepton eff:", len(events[ak.num(events.Lepton)>0]) / len(events))
 
     # jet selections
     jets = events.Jet
@@ -71,11 +64,6 @@ def event_selection(events, channel="lep"):
         & ak.all(jets.metric_table(events.Lepton, metric=lambda a, b: a.delta_r(b)) > 0.5, axis=-1)
     ]
 
-    # print("pT lead eff:", 
-    #     len(events[(ak.num(events.Photon) == 2) & (ak.fill_none(
-    #         np.max(events.Photon.pt, axis=1) > 35., False
-    #     ))]) / len(events[(ak.num(events.Photon) == 2)])
-    # )
     events = events[
         (ak.num(events.Photon) == 2)
         & ak.fill_none(
@@ -106,15 +94,6 @@ def event_selection(events, channel="lep"):
     diphoton = phoLead + phoSublead
 
     diphoton_mass = diphoton.mass
-
-    # print("Fid cut eff:", 
-    #     len(events[
-    #         (phoLead.pt / diphoton_mass > 1/3)
-    #         & (phoSublead.pt / diphoton_mass > 1/4)
-    #         & (diphoton_mass > 100)
-    #         & (diphoton_mass < 180)
-    #     ]) / len(events)
-    # )
 
     events = events[
         (phoLead.pt / diphoton_mass > 1/3)
@@ -193,7 +172,6 @@ def main(path, hists, entryStop=None):
         "eta": events.Lepton.eta,
         "phi": events.Lepton.phi,
         "mass": events.Lepton.mass,
-        # "pdgId": events.Lepton.pdgId
     }, with_name="Momentum4D")
 
     bJets = jets[(jets.BTag == 1) & (np.abs(jets.eta) < 2.5)]
@@ -289,18 +267,14 @@ if __name__ == "__main__":
     filenames_ttH = glob.glob("/net/scratch_cms3a/jerdmann/tag_1_pythia8_events.root")
     filenames_tHq = glob.glob(basepath + "sampleGeneration/tHq_TLep_k1_ktilde0/*.root")
 
-    histsTtHCPEven = plotter.get_dict_hists()
-    histsTHqCPEven = plotter.get_dict_hists()
+    hists_ttH = plotter.get_dict_hists()
+    hists_tHq = plotter.get_dict_hists()
 
-    stop = None #
-    # stop = 10_000
-    stop = 100_000
+    stop = None 
     for file in filenames_ttH:
-        histsTtHCPEven = main(file, histsTtHCPEven, entryStop=stop)
-    # for file in filenames_tHq:
-    #     histsTHqCPEven = main(file, histsTHqCPEven, entryStop=stop)
-
-    labels = ["ttH CP even", "ttH CP odd", "tH CP even", "tH CP odd"]
+        hists_ttH = main(file, hists_ttH, entryStop=stop)
+    for file in filenames_tHq:
+        hists_tHq = main(file, hists_tHq, entryStop=stop)
 
     histNames = [
         "mass",
@@ -331,47 +305,11 @@ if __name__ == "__main__":
 
     for histName in histNames:
 
-        # plotter.plot_histograms(
-        #     hists=[histsTtHCPEven[histName][0], histsTtHCPOdd[histName][0], histsTHqCPEven[histName][0], histsTHqCPOdd[histName][0]],
-        #     process_labels=labels,
-        #     output_filename=f"./Plots/{histName}.pdf",
-        #     normalize=True,
-        #     axis_labels=histsTtHCPEven[histName][1],
-        #     include_flow=True
-        # )
-
-        # plotter.plot_histograms(
-        #     hists=[histsTHqCPEven[histName][0], histsTHqCPEven5FS[histName][0]],
-        #     process_labels=["tHq 4FS", "tHq 5FS"],
-        #     output_filename=f"./PlotsFS/{histName}.pdf",
-        #     normalize=True,
-        #     axis_labels=histsTtHCPEven[histName][1],
-        #     include_flow=True
-        # )
-
-        # plotter.plot_histograms(
-        #     hists=[histsTHqCPOdd[histName][0], histsTHqCPOddCrossCheck[histName][0]],
-        #     process_labels=["tHq CP-odd", "Cross-check"],
-        #     output_filename=f"./PlotsCrossCheck/{histName}.pdf",
-        #     normalize=True,
-        #     axis_labels=histsTtHCPEven[histName][1],
-        #     include_flow=True
-        # )
-
-        # plotter.plot_histograms(
-        #     hists=[histsTtHCPEven[histName][0], histsTHqCPEven[histName][0]],
-        #     process_labels=[r"$t\bar{t}H$", r"$tH$"],
-        #     output_filename=f"./PlotsDelphes/{histName}.pdf",
-        #     normalize=True,
-        #     axis_labels=histsTtHCPEven[histName][1],
-        #     include_flow=True
-        # )
-
         plotter.plot_histograms(
-            hists=[histsTtHCPEven[histName][0]],
-            process_labels=[r"$t\bar{t}H$ Delphes"],
+            hists=[hists_ttH[histName][0], hists_tHq[histName][0]],
+            process_labels=[r"$t\bar{t}H$", r"$tH$"],
             output_filename=f"./PlotsDelphes/{histName}.pdf",
             normalize=True,
-            axis_labels=histsTtHCPEven[histName][1],
+            axis_labels=hists_ttH[histName][1],
             include_flow=True
         )

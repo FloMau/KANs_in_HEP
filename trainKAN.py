@@ -60,11 +60,6 @@ val_data, val_labels = shuffle(val_data, val_labels, random_state=0)
 train_weights = train_data.pop("weights")
 val_weights = val_data.pop("weights")
 
-# # Load the configuration from the JSON file
-# config_path = 'configs/KANs/highAndLowLevels/22-1-testsOnly.json'
-# with open(config_path, 'r') as config_file:
-#     config = json.load(config_file)
-
 # Extract settings from the config
 features_to_use = config['features_to_use']
 epochs = config['epochs']
@@ -134,8 +129,6 @@ dataset = {
 input_dim = train_data_scaled.shape[1]
 model = KAN(width=num_nodes,
             grid=grid,
-            # grid_range=(0,1),
-            # grid_eps=0.,
             k=k,
             seed=42)
 
@@ -178,14 +171,6 @@ results = KAN_trainer.fit_with_early_stopping_batch(
 
 print(results)
 
-# print(
-#     model.act_fun[0].grid[0].data
-# )
-
-# model_filename = os.path.join(output_dir, modelSaveName)
-# torch.save(model.state_dict(), model_filename)
-
-
 # Save training history
 history_df = pd.DataFrame({
     'train_loss': results['train_loss'],
@@ -226,22 +211,10 @@ fig.savefig(plot_filename)
 model.save_plot_data = True
 model(dataset['train_input'])
 plt.figure(figsize=(10,6))
-model.plot(beta=100, in_vars=features_to_use, out_vars="ttH vs. tH", varscale=0.1) #, out_vars=['y1', "y2"], title = 'My KAN', scale=0.04)
-# KAN_plotter.plot_custom(model, beta=10, in_vars=features, out_vars=['ttH vs. tH'], title = 'My KAN', scale=10, tick_size=100, tick=True)
-# plt.tight_layout()
+model.plot(beta=100, in_vars=features_to_use, out_vars="ttH vs. tH", varscale=0.1)
+
 if not continueTraining:
     plt.savefig(output_dir + "/KAN_model.pdf")
 else:
     plt.savefig(output_dir + "/KAN_model2.pdf")
 plt.close()
-# ## prune and plot model
-# modelPruned = model.prune()
-# modelPruned(dataset['train_input'])
-# # # fig, ax = plt.subplots(figsize=(20,10))
-# plt.figure(figsize=(10,6))
-# # modelPruned.plot(beta=100, in_vars=features, scale=10) #, out_vars=['y1', "y2"], title = 'My KAN', scale=0.04)
-# KAN_plotter.plot_custom(modelPruned, beta=10, in_vars=features, out_vars=['ttH vs. tH'], title = 'My KAN', scale=10, tick_size=100)
-# # plt.tight_layout()
-# plt.savefig(output_dir + "/KAN_modelPruned.pdf")
-# plt.close()
-
